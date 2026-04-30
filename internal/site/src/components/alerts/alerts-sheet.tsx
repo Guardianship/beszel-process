@@ -38,12 +38,12 @@ const failedUpdateToast = (error: unknown) => {
 
 /** Create or update alerts for a given name and systems */
 const upsertAlerts = debounce(
-	async ({ name, value, min, systems }: { name: string; value: number; min: number; systems: string[] }) => {
+	async ({ name, item, value, min, systems }: { name: string; item: string; value: number; min: number; systems: string[] }) => {
 		try {
 			await pb.send<{ success: boolean }>(endpoint, {
 				method: "POST",
 				// overwrite is always true because we've done filtering client side
-				body: { name, value, min, systems, overwrite: true },
+				body: { name, item, value, min, systems, overwrite: true },
 			})
 		} catch (error) {
 			failedUpdateToast(error)
@@ -53,11 +53,11 @@ const upsertAlerts = debounce(
 )
 
 /** Delete alerts for a given name and systems */
-const deleteAlerts = debounce(async ({ name, systems }: { name: string; systems: string[] }) => {
+const deleteAlerts = debounce(async ({ name, item, systems }: { name: string; item: string; systems: string[] }) => {
 	try {
 		await pb.send<{ success: boolean }>(endpoint, {
 			method: "DELETE",
-			body: { name, systems },
+			body: { name, item, systems },
 		})
 	} catch (error) {
 		failedUpdateToast(error)
@@ -89,17 +89,17 @@ export const AlertDialogContent = memo(function AlertDialogContent({ system }: {
 			// Alert names present on target but absent from source should be deleted
 			const namesToDelete = Array.from(currentTargetAlerts.keys()).filter((name) => !sourceAlerts.has(name))
 			await Promise.all([
-				...Array.from(sourceAlerts.values()).map(({ name, value, min }) =>
+				...Array.from(sourceAlerts.values()).map(({ name, item, value, min }) =>
 					pb.send<{ success: boolean }>(endpoint, {
 						method: "POST",
-						body: { name, value, min, systems: [system.id], overwrite: true },
+						body: { name, item: alert.item || "", value, min, systems: [system.id], overwrite: true },
 						requestKey: name,
 					})
 				),
 				...namesToDelete.map((name) =>
 					pb.send<{ success: boolean }>(endpoint, {
 						method: "DELETE",
-						body: { name, systems: [system.id] },
+						body: { name, item: "", systems: [system.id] },
 						requestKey: name,
 					})
 				),
@@ -108,7 +108,7 @@ export const AlertDialogContent = memo(function AlertDialogContent({ system }: {
 			// before the realtime subscription event arrives.
 			const newSystemAlerts = new Map<string, AlertRecord>()
 			for (const alert of sourceAlerts.values()) {
-				newSystemAlerts.set(alert.name, { ...alert, system: system.id, triggered: false })
+				newSystemAlerts.set(alert.item ? `${alert.name}:${alert.item}` : alert.name, { ...alert, system: system.id, triggered: false })
 			}
 			$alerts.setKey(system.id, newSystemAlerts)
 			setCopyKey((k) => k + 1)
@@ -240,6 +240,7 @@ export function AlertContent({
 	const [checked, setChecked] = useState(global ? false : !!alert)
 	const [min, setMin] = useState(alert?.min || 10)
 	const [value, setValue] = useState(alert?.value || (singleDescription ? 0 : (alertData.start ?? 80)))
+	const [item, setItem] = useState(alert?.item || "")
 
 	const Icon = alertData.icon
 
@@ -296,7 +297,7 @@ export function AlertContent({
 							sendUpsert(min, value)
 						} else {
 							// if unchecked, delete alert (unless global and overwriteExisting is false)
-							deleteAlerts({ name: alertKey, systems: getSystemIds() })
+							deleteAlerts({ name: alertKey, item, systems: getSystemIds() })
 							// when force deleting all alerts of a type, also remove them from initialAlertsState
 							if (overwriteExisting) {
 								for (const curAlerts of Object.values(initialAlertsState)) {
@@ -309,6 +310,20 @@ export function AlertContent({
 			</label>
 			{checked && (
 				<div className="grid sm:grid-cols-2 mt-1.5 gap-5 px-4 pb-5 tabular-nums text-muted-foreground">
+					{alertData.hasItem && (
+						<div className="col-span-full">
+							<Input
+								type="text"
+								value={item}
+								onChange={(e) => {
+									setItem(e.target.value)
+									if (checked) sendUpsert(min, value)
+								}}
+								placeholder={alertKey === "Port" ? "80/tcp" : "Process name"}
+								className="h-8"
+							/>
+						</div>
+					)}
 					<Suspense fallback={<div className="h-10" />}>
 						{!singleDescription && (
 							<div>

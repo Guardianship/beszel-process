@@ -22,7 +22,7 @@ export const ActiveAlerts = () => {
 			for (const alert of alerts[systemId].values()) {
 				if (alert.triggered && alert.name in alertInfo) {
 					activeAlerts.push(alert)
-					alertsKey.push(`${alert.system}${alert.value}${alert.min}`)
+					alertsKey.push(`${alert.system}${alert.value}${alert.min}${alert.item}`)
 				}
 			}
 		}
@@ -56,7 +56,7 @@ export const ActiveAlerts = () => {
 									>
 										<info.icon className="h-4 w-4" />
 										<AlertTitle>
-											{systems[alert.system]?.name} {info.name()}
+											{systems[alert.system]?.name} {info.name()}{alert.item ? `: ${alert.item}` : ""}
 										</AlertTitle>
 										<AlertDescription>
 											{alert.name === "Status" ? (

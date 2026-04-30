@@ -22,6 +22,7 @@ func UpsertUserAlerts(e *core.RequestEvent) error {
 		Min       uint8    `json:"min"`
 		Value     float64  `json:"value"`
 		Name      string   `json:"name"`
+		Item      string   `json:"item"`
 		Systems   []string `json:"systems"`
 		Overwrite bool     `json:"overwrite"`
 	}{}
@@ -39,8 +40,8 @@ func UpsertUserAlerts(e *core.RequestEvent) error {
 		for _, systemId := range reqData.Systems {
 			// find existing matching alert
 			alertRecord, err := txApp.FindFirstRecordByFilter(alertsCollection,
-				"system={:system} && name={:name} && user={:user}",
-				dbx.Params{"system": systemId, "name": reqData.Name, "user": userID})
+				"system={:system} && name={:name} && user={:user} && item={:item}",
+				dbx.Params{"system": systemId, "name": reqData.Name, "user": userID, "item": reqData.Item})
 
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				return err
@@ -57,6 +58,7 @@ func UpsertUserAlerts(e *core.RequestEvent) error {
 				alertRecord.Set("user", userID)
 				alertRecord.Set("system", systemId)
 				alertRecord.Set("name", reqData.Name)
+				alertRecord.Set("item", reqData.Item)
 			}
 
 			alertRecord.Set("value", reqData.Value)
@@ -83,6 +85,7 @@ func DeleteUserAlerts(e *core.RequestEvent) error {
 
 	reqData := struct {
 		AlertName string   `json:"name"`
+		Item      string   `json:"item"`
 		Systems   []string `json:"systems"`
 	}{}
 	err := e.BindBody(&reqData)
@@ -96,8 +99,8 @@ func DeleteUserAlerts(e *core.RequestEvent) error {
 		for _, systemId := range reqData.Systems {
 			// Find existing alert to delete
 			alertRecord, err := txApp.FindFirstRecordByFilter("alerts",
-				"system={:system} && name={:name} && user={:user}",
-				dbx.Params{"system": systemId, "name": reqData.AlertName, "user": userID})
+				"system={:system} && name={:name} && user={:user} && item={:item}",
+				dbx.Params{"system": systemId, "name": reqData.AlertName, "user": userID, "item": reqData.Item})
 
 			if err != nil {
 				if errors.Is(err, sql.ErrNoRows) {

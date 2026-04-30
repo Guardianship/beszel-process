@@ -334,6 +334,8 @@ export interface AlertInfo {
 	/** Single value description (when there's only one value, like status) */
 	singleDesc?: () => string
 	invert?: boolean
+	/** Whether this alert type requires an item (process name, port identifier) */
+	hasItem?: boolean
 }
 
 export type AlertMap = Record<string, Map<string, AlertRecord>>
