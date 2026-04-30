@@ -127,6 +127,10 @@ func (h *Hub) registerApiRoutes(se *core.ServeEvent) error {
 	apiAuth.POST("/smart/refresh", h.refreshSmartData).BindFunc(excludeReadOnlyRole)
 	// get systemd service details
 	apiAuth.GET("/systemd/info", h.getSystemdInfo)
+	// get process info from agent
+	apiAuth.GET("/process/info", h.getProcessInfo)
+	// get port info from agent
+	apiAuth.GET("/port/info", h.getPortInfo)
 	// /containers routes
 	if enabled, _ := utils.GetEnv("CONTAINER_DETAILS"); enabled != "false" {
 		// get container logs
@@ -388,4 +392,45 @@ func (h *Hub) refreshSmartData(e *core.RequestEvent) error {
 	}
 
 	return e.JSON(http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// getProcessInfo handles GET /api/beszel/process/info requests
+func (h *Hub) getProcessInfo(e *core.RequestEvent) error {
+	query := e.Request.URL.Query()
+	systemID := query.Get("system")
+	processName := query.Get("name")
+
+	if systemID == "" {
+		return e.BadRequestError("Invalid system parameter", nil)
+	}
+	sys, err := h.sm.GetSystem(systemID)
+	if err != nil || !sys.HasUser(e.App, e.Auth) {
+		return e.NotFoundError("", nil)
+	}
+
+	result, err := sys.FetchProcessInfoFromAgent(processName)
+	if err != nil {
+		return e.InternalServerError("", err)
+	}
+	return e.JSON(http.StatusOK, map[string]any{"processes": result})
+}
+
+// getPortInfo handles GET /api/beszel/port/info requests
+func (h *Hub) getPortInfo(e *core.RequestEvent) error {
+	query := e.Request.URL.Query()
+	systemID := query.Get("system")
+
+	if systemID == "" {
+		return e.BadRequestError("Invalid system parameter", nil)
+	}
+	sys, err := h.sm.GetSystem(systemID)
+	if err != nil || !sys.HasUser(e.App, e.Auth) {
+		return e.NotFoundError("", nil)
+	}
+
+	result, err := sys.FetchPortInfoFromAgent()
+	if err != nil {
+		return e.InternalServerError("", err)
+	}
+	return e.JSON(http.StatusOK, map[string]any{"ports": result})
 }

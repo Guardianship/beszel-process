@@ -599,6 +599,24 @@ func (sys *System) FetchSystemdInfoFromAgent(serviceName string) (systemd.Servic
 	return result, err
 }
 
+// FetchProcessInfoFromAgent fetches process info from the agent
+func (sys *System) FetchProcessInfoFromAgent(processName string) ([]*system.ProcessInfo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	var result []*system.ProcessInfo
+	err := sys.request(ctx, common.GetProcessInfo, common.ProcessInfoRequest{ProcessName: processName}, &result)
+	return result, err
+}
+
+// FetchPortInfoFromAgent fetches port info from the agent
+func (sys *System) FetchPortInfoFromAgent() ([]*system.PortInfo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	var result []*system.PortInfo
+	err := sys.request(ctx, common.GetPortInfo, nil, &result)
+	return result, err
+}
+
 // FetchSmartDataFromAgent fetches SMART data from the agent
 func (sys *System) FetchSmartDataFromAgent() (map[string]smart.SmartData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
