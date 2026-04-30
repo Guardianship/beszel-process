@@ -34,3 +34,25 @@ export function LazySystemdTable({ systemId }: { systemId: string }) {
 		</div>
 	)
 }
+
+const ProcessTable = lazy(() => import("./process-table"))
+
+export function LazyProcessTable({ systemId }: { systemId: string }) {
+	const { isIntersecting, ref } = useIntersectionObserver()
+	return (
+		<div ref={ref} className={cn(isIntersecting && "contents")}>
+			{isIntersecting && <ProcessTable systemId={systemId} />}
+		</div>
+	)
+}
+
+const PortTable = lazy(() => import("./port-table"))
+
+export function LazyPortTable({ systemId }: { systemId: string }) {
+	const { isIntersecting, ref } = useIntersectionObserver()
+	return (
+		<div ref={ref} className={cn(isIntersecting && "contents")}>
+			{isIntersecting && <PortTable systemId={systemId} />}
+		</div>
+	)
+}

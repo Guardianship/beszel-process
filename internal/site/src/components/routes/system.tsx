@@ -11,12 +11,14 @@ import { RootDiskCharts, ExtraFsCharts } from "./system/charts/disk-charts"
 import { BandwidthChart, ContainerNetworkChart } from "./system/charts/network-charts"
 import { TemperatureChart, BatteryChart } from "./system/charts/sensor-charts"
 import { GpuPowerChart, GpuDetailCharts } from "./system/charts/gpu-charts"
-import { LazyContainersTable, LazySmartTable, LazySystemdTable } from "./system/lazy-tables"
+import { LazyContainersTable, LazySmartTable, LazySystemdTable, LazyProcessTable, LazyPortTable } from "./system/lazy-tables"
 import { LoadAverageChart } from "./system/charts/load-average-chart"
-import { ContainerIcon, CpuIcon, HardDriveIcon, TerminalSquareIcon } from "lucide-react"
+import { ContainerIcon, CpuIcon, EthernetPortIcon, HardDriveIcon, TerminalSquareIcon } from "lucide-react"
 import { GpuIcon } from "../ui/icons"
 import SystemdTable from "../systemd-table/systemd-table"
 import ContainersTable from "../containers-table/containers-table"
+import ProcessTable from "./system/process-table"
+import PortTable from "./system/port-table"
 
 const SEMVER_0_14_0 = parseSemVer("0.14.0")
 const SEMVER_0_15_0 = parseSemVer("0.15.0")
@@ -69,6 +71,8 @@ export default memo(function SystemDetail({ id }: { id: string }) {
 	if (hasGpu) tabs.push("gpu")
 	if (hasContainers) tabs.push("containers")
 	if (hasSystemd) tabs.push("services")
+	tabs.push("processes")
+	tabs.push("ports")
 	tabsRef.current = tabs
 
 	// shared chart props
@@ -145,6 +149,10 @@ export default memo(function SystemDetail({ id }: { id: string }) {
 				{hasContainersTable && <LazyContainersTable systemId={system.id} />}
 
 				{hasSystemd && <LazySystemdTable systemId={system.id} />}
+
+				<LazyProcessTable systemId={system.id} />
+
+				<LazyPortTable systemId={system.id} />
 			</>
 		)
 	}
@@ -179,6 +187,14 @@ export default memo(function SystemDetail({ id }: { id: string }) {
 							<Trans>Services</Trans>
 						</TabsTrigger>
 					)}
+					<TabsTrigger value="processes" className="w-full flex items-center gap-2">
+						<TerminalSquareIcon className="size-3.5" />
+						<Trans>Processes</Trans>
+					</TabsTrigger>
+					<TabsTrigger value="ports" className="w-full flex items-center gap-2">
+						<EthernetPortIcon className="size-3.5" />
+						<Trans>Ports</Trans>
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="core" forceMount className={activeTab === "core" ? "contents" : "hidden"}>
@@ -261,6 +277,12 @@ export default memo(function SystemDetail({ id }: { id: string }) {
 						{mountedTabs.has("services") && <SystemdTable systemId={system.id} />}
 					</TabsContent>
 				)}
+				<TabsContent value="processes" forceMount className={activeTab === "processes" ? "contents" : "hidden"}>
+					{mountedTabs.has("processes") && <ProcessTable systemId={system.id} />}
+				</TabsContent>
+				<TabsContent value="ports" forceMount className={activeTab === "ports" ? "contents" : "hidden"}>
+					{mountedTabs.has("ports") && <PortTable systemId={system.id} />}
+				</TabsContent>
 			</Tabs>
 		)
 	}
