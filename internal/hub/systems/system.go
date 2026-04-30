@@ -231,6 +231,20 @@ func (sys *System) createRecords(data *system.CombinedData) (*core.Record, error
 			}
 		}
 
+		// add process records
+		if len(data.Processes) > 0 {
+			if err := createProcessRecords(txApp, data.Processes, sys.Id); err != nil {
+				return err
+			}
+		}
+
+		// add port records
+		if len(data.Ports) > 0 {
+			if err := createPortRecords(txApp, data.Ports, sys.Id); err != nil {
+				return err
+			}
+		}
+
 		// add system details record
 		if data.Details != nil {
 			if err := createSystemDetailsRecord(txApp, data.Details, sys.Id); err != nil {
@@ -300,6 +314,60 @@ func createSystemdStatsRecords(app core.App, data []*systemd.Service, systemId s
 	}
 	queryString := fmt.Sprintf(
 		"INSERT INTO systemd_services (id, system, name, state, sub, cpu, cpuPeak, memory, memPeak, updated) VALUES %s ON CONFLICT(id) DO UPDATE SET system = excluded.system, name = excluded.name, state = excluded.state, sub = excluded.sub, cpu = excluded.cpu, cpuPeak = excluded.cpuPeak, memory = excluded.memory, memPeak = excluded.memPeak, updated = excluded.updated",
+		strings.Join(valueStrings, ","),
+	)
+	_, err := app.DB().NewQuery(queryString).Bind(params).Execute()
+	return err
+}
+
+func createProcessRecords(app core.App, data []*system.ProcessInfo, systemId string) error {
+	if len(data) == 0 {
+		return nil
+	}
+	params := dbx.Params{
+		"system":  systemId,
+		"updated": time.Now().UTC().UnixMilli(),
+	}
+	valueStrings := make([]string, 0, len(data))
+	for i, proc := range data {
+		suffix := fmt.Sprintf("%d", i)
+		valueStrings = append(valueStrings, fmt.Sprintf("({:id%[1]s}, {:system}, {:name%[1]s}, {:pid%[1]s}, {:cpu%[1]s}, {:memory%[1]s}, {:status%[1]s}, {:uptime%[1]s}, {:updated})", suffix))
+		params["id"+suffix] = makeStableHashId(systemId, "proc", proc.Name)
+		params["name"+suffix] = proc.Name
+		params["pid"+suffix] = proc.Pid
+		params["cpu"+suffix] = proc.Cpu
+		params["memory"+suffix] = proc.Mem
+		params["status"+suffix] = proc.Status
+		params["uptime"+suffix] = proc.Uptime
+	}
+	queryString := fmt.Sprintf(
+		"INSERT INTO processes (id, system, name, pid, cpu, memory, status, uptime, updated) VALUES %s ON CONFLICT(id) DO UPDATE SET system = excluded.system, name = excluded.name, pid = excluded.pid, cpu = excluded.cpu, memory = excluded.memory, status = excluded.status, uptime = excluded.uptime, updated = excluded.updated",
+		strings.Join(valueStrings, ","),
+	)
+	_, err := app.DB().NewQuery(queryString).Bind(params).Execute()
+	return err
+}
+
+func createPortRecords(app core.App, data []*system.PortInfo, systemId string) error {
+	if len(data) == 0 {
+		return nil
+	}
+	params := dbx.Params{
+		"system":  systemId,
+		"updated": time.Now().UTC().UnixMilli(),
+	}
+	valueStrings := make([]string, 0, len(data))
+	for i, port := range data {
+		suffix := fmt.Sprintf("%d", i)
+		valueStrings = append(valueStrings, fmt.Sprintf("({:id%[1]s}, {:system}, {:port%[1]s}, {:protocol%[1]s}, {:status%[1]s}, {:service%[1]s}, {:updated})", suffix))
+		params["id"+suffix] = makeStableHashId(systemId, "port", fmt.Sprintf("%d/%s", port.Port, port.Protocol))
+		params["port"+suffix] = port.Port
+		params["protocol"+suffix] = port.Protocol
+		params["status"+suffix] = port.Status
+		params["service"+suffix] = port.Service
+	}
+	queryString := fmt.Sprintf(
+		"INSERT INTO monitored_ports (id, system, port, protocol, status, service, updated) VALUES %s ON CONFLICT(id) DO UPDATE SET system = excluded.system, port = excluded.port, protocol = excluded.protocol, status = excluded.status, service = excluded.service, updated = excluded.updated",
 		strings.Join(valueStrings, ","),
 	)
 	_, err := app.DB().NewQuery(queryString).Bind(params).Execute()
