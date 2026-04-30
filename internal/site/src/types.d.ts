@@ -228,6 +228,7 @@ export interface AlertRecord extends RecordModel {
 	id: string
 	system: string
 	name: string
+	item: string
 	triggered: boolean
 	value: number
 	min: number
@@ -419,6 +420,26 @@ export interface SystemdRecord extends RecordModel {
 	memory: number
 	memPeak: number
 	updated: number
+}
+
+export interface ProcessRecord extends RecordModel {
+	system: string
+	name: string
+	pid: number
+	cpu: number
+	memory: number
+	status: string
+	uptime: number
+	updated: string
+}
+
+export interface PortRecord extends RecordModel {
+	system: string
+	port: number
+	protocol: string
+	status: string
+	service: string
+	updated: string
 }
 
 export interface SystemdServiceDetails {

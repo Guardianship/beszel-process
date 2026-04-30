@@ -1,5 +1,5 @@
 import { t } from "@lingui/core/macro"
-import { CpuIcon, HardDriveIcon, MemoryStickIcon, ServerIcon } from "lucide-react"
+import { CpuIcon, HardDriveIcon, MemoryStickIcon, ServerIcon, ActivityIcon } from "lucide-react"
 import type { RecordSubscription } from "pocketbase"
 import { EthernetIcon, GpuIcon } from "@/components/ui/icons"
 import { $alerts } from "@/lib/stores"
@@ -92,6 +92,32 @@ export const alertInfo: Record<string, AlertInfo> = {
 		start: 20,
 		invert: true,
 	},
+	Process: {
+		name: () => t`Process`,
+		unit: "",
+		icon: ActivityIcon,
+		desc: () => t`Triggers when a process goes down or comes back up`,
+		singleDesc: () => t`Process Down`,
+	},
+	ProcessCpu: {
+		name: () => t`Process CPU`,
+		unit: "%",
+		icon: ActivityIcon,
+		desc: () => t`Triggers when a process CPU usage exceeds a threshold`,
+	},
+	ProcessMem: {
+		name: () => t`Process Memory`,
+		unit: "%",
+		icon: MemoryStickIcon,
+		desc: () => t`Triggers when a process memory usage exceeds a threshold`,
+	},
+	Port: {
+		name: () => t`Port`,
+		unit: "",
+		icon: EthernetIcon,
+		desc: () => t`Triggers when a port closes or reopens`,
+		singleDesc: () => t`Port Closed`,
+	},
 } as const
 
 /** Helper to manage user alerts */
@@ -100,30 +126,35 @@ export const alertManager = (() => {
 	let unsub: () => void
 
 	/** Fields to fetch from alerts collection */
-	const fields = "id,name,system,value,min,triggered"
+	const fields = "id,name,item,system,value,min,triggered"
 
 	/** Fetch alerts from collection */
 	async function fetchAlerts(): Promise<AlertRecord[]> {
 		return await collection.getFullList<AlertRecord>({ fields, sort: "updated" })
 	}
 
-	/** Format alerts into a map of system id to alert name to alert record */
+	/** Alert key combining name and item for unique identification */
+	function alertKey(alert: Pick<AlertRecord, "name" | "item">) {
+		return alert.item ? `${alert.name}:${alert.item}` : alert.name
+	}
+
+	/** Format alerts into a map of system id to alert key to alert record */
 	function add(alerts: AlertRecord[]) {
 		for (const alert of alerts) {
 			const systemId = alert.system
 			const systemAlerts = $alerts.get()[systemId] ?? new Map()
 			const newAlerts = new Map(systemAlerts)
-			newAlerts.set(alert.name, alert)
+			newAlerts.set(alertKey(alert), alert)
 			$alerts.setKey(systemId, newAlerts)
 		}
 	}
 
-	function remove(alerts: Pick<AlertRecord, "name" | "system">[]) {
+	function remove(alerts: Pick<AlertRecord, "name" | "item" | "system">[]) {
 		for (const alert of alerts) {
 			const systemId = alert.system
 			const systemAlerts = $alerts.get()[systemId]
 			const newAlerts = new Map(systemAlerts)
-			newAlerts.delete(alert.name)
+			newAlerts.delete(alertKey(alert))
 			$alerts.setKey(systemId, newAlerts)
 		}
 	}
@@ -141,7 +172,7 @@ export const alertManager = (() => {
 
 		return (data: RecordSubscription<AlertRecord>) => {
 			const { record } = data
-			batch.set(`${record.system}${record.name}`, data)
+			batch.set(`${record.system}${alertKey(record)}`, data)
 			clearTimeout(timeout)
 			timeout = setTimeout(() => {
 				const groups = { create: [], update: [], delete: [] } as Record<string, AlertRecord[]>
