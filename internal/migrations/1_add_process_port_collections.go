@@ -253,7 +253,7 @@ func init() {
 			return err
 		}
 
-		// Update alerts collection to add new alert type names
+		// Update alerts collection to add new alert type names and item field
 		alertsCollection, err := app.FindCachedCollectionByNameOrId("alerts")
 		if err != nil {
 			return err
@@ -267,6 +267,18 @@ func init() {
 				}
 				break
 			}
+		}
+
+		// Add "item" text field to store process name or port identifier
+		itemField := &core.TextField{
+			Name:     "item",
+			Required: false,
+		}
+		alertsCollection.Fields.Add(itemField)
+
+		// Update unique index to include item (user, system, name, item)
+		alertsCollection.Indexes = []string{
+			"CREATE UNIQUE INDEX `idx_alerts_user_system_name_item` ON `alerts` (`user`, `system`, `name`, `item`)",
 		}
 
 		return app.Save(alertsCollection)

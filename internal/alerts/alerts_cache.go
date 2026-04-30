@@ -12,6 +12,7 @@ type CachedAlertData struct {
 	SystemID  string
 	UserID    string
 	Name      string
+	Item      string
 	Value     float64
 	Triggered bool
 	Min       uint8
@@ -23,6 +24,7 @@ func (a *CachedAlertData) PopulateFromRecord(record *core.Record) {
 	a.SystemID = record.GetString("system")
 	a.UserID = record.GetString("user")
 	a.Name = record.GetString("name")
+	a.Item = record.GetString("item")
 	a.Value = record.GetFloat("value")
 	a.Triggered = record.GetBool("triggered")
 	a.Min = uint8(record.GetInt("min"))
@@ -146,6 +148,22 @@ func (c *AlertsCache) GetAlertsByName(systemID, alertName string) []CachedAlertD
 	var alerts []CachedAlertData
 	for _, record := range allAlerts {
 		if record.Name == alertName {
+			alerts = append(alerts, record)
+		}
+	}
+	return alerts
+}
+
+// GetAlertsByNames returns all alerts matching any of the given type names for the specified system.
+func (c *AlertsCache) GetAlertsByNames(systemID string, alertNames ...string) []CachedAlertData {
+	nameMap := make(map[string]struct{}, len(alertNames))
+	for _, n := range alertNames {
+		nameMap[n] = struct{}{}
+	}
+	allAlerts := c.GetSystemAlerts(systemID)
+	var alerts []CachedAlertData
+	for _, record := range allAlerts {
+		if _, ok := nameMap[record.Name]; ok {
 			alerts = append(alerts, record)
 		}
 	}
