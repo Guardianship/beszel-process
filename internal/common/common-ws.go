@@ -22,7 +22,10 @@ const (
 	GetSmartData
 	// Request detailed systemd service info from agent
 	GetSystemdInfo
-	// Add new actions here...
+	// Request process info from agent
+	GetProcessInfo
+	// Request port info from agent
+	GetPortInfo
 )
 
 // HubRequest defines the structure for requests sent from hub to agent.
@@ -73,4 +76,13 @@ type ContainerInfoRequest struct {
 
 type SystemdInfoRequest struct {
 	ServiceName string `cbor:"0,keyasint"`
+}
+
+type ProcessInfoRequest struct {
+	ProcessName string `cbor:"0,keyasint"`
+}
+
+type PortInfoRequest struct {
+	Port     uint16 `cbor:"0,keyasint"`
+	Protocol string `cbor:"1,keyasint"`
 }
