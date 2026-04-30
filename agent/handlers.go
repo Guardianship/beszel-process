@@ -8,6 +8,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 	"github.com/henrygd/beszel/internal/common"
 	"github.com/henrygd/beszel/internal/entities/smart"
+	"github.com/henrygd/beszel/internal/entities/system"
 
 	"log/slog"
 )
@@ -51,6 +52,8 @@ func NewHandlerRegistry() *HandlerRegistry {
 	registry.Register(common.GetContainerInfo, &GetContainerInfoHandler{})
 	registry.Register(common.GetSmartData, &GetSmartDataHandler{})
 	registry.Register(common.GetSystemdInfo, &GetSystemdInfoHandler{})
+	registry.Register(common.GetProcessInfo, &GetProcessInfoHandler{})
+	registry.Register(common.GetPortInfo, &GetPortInfoHandler{})
 
 	return registry
 }
@@ -202,4 +205,30 @@ func (h *GetSystemdInfoHandler) Handle(hctx *HandlerContext) error {
 	}
 
 	return hctx.SendResponse(details, hctx.RequestID)
+}
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+// GetProcessInfoHandler handles process info requests
+type GetProcessInfoHandler struct{}
+
+func (h *GetProcessInfoHandler) Handle(hctx *HandlerContext) error {
+	if hctx.Agent.processManager == nil {
+		return hctx.SendResponse([]*system.ProcessInfo{}, hctx.RequestID)
+	}
+	return hctx.SendResponse(hctx.Agent.processManager.getProcessStats(), hctx.RequestID)
+}
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+// GetPortInfoHandler handles port info requests
+type GetPortInfoHandler struct{}
+
+func (h *GetPortInfoHandler) Handle(hctx *HandlerContext) error {
+	if hctx.Agent.portManager == nil {
+		return hctx.SendResponse([]*system.PortInfo{}, hctx.RequestID)
+	}
+	return hctx.SendResponse(hctx.Agent.portManager.getPortStats(), hctx.RequestID)
 }

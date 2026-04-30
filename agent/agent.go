@@ -48,6 +48,9 @@ type Agent struct {
 	keys                      []gossh.PublicKey                                     // SSH public keys
 	smartManager              *SmartManager                                         // Manages SMART data
 	systemdManager            *systemdManager                                       // Manages systemd services
+	processManager            *processManager                                       // Manages process monitoring
+	portManager               *portManager                                          // Manages port monitoring
+	serviceManager            *serviceManager                                       // Manages Windows service monitoring
 }
 
 // NewAgent creates a new agent with the given data directory for persisting data.
@@ -137,6 +140,18 @@ func NewAgent(dataDir ...string) (agent *Agent, err error) {
 		slog.Debug("SMART", "err", err)
 	}
 
+	// initialize process manager
+	agent.processManager = newProcessManager()
+
+	// initialize port manager
+	agent.portManager = newPortManager()
+
+	// initialize service manager
+	agent.serviceManager, err = newServiceManager()
+	if err != nil {
+		slog.Debug("Service", "err", err)
+	}
+
 	// initialize GPU manager
 	agent.gpuManager, err = NewGPUManager()
 	if err != nil {
@@ -208,6 +223,16 @@ func (a *Agent) gatherStats(options common.DataRequestOptions) *system.CombinedD
 		}
 	}
 	slog.Debug("Extra FS", "data", data.Stats.ExtraFs)
+
+	// collect process stats if process manager is configured
+	if a.processManager != nil {
+		data.Processes = a.processManager.getProcessStats()
+	}
+
+	// collect port stats if port manager is configured
+	if a.portManager != nil {
+		data.Ports = a.portManager.getPortStats()
+	}
 
 	a.cache.Set(data, cacheTimeMs)
 
