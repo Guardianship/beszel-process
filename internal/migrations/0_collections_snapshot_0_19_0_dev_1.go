@@ -79,7 +79,11 @@ func init() {
 					"LoadAvg1",
 					"LoadAvg5",
 					"LoadAvg15",
-					"Battery"
+					"Battery",
+					"Process",
+					"ProcessCpu",
+					"ProcessMem",
+					"Port"
 				]
 			},
 			{
@@ -114,6 +118,17 @@ func init() {
 				"required": false,
 				"system": false,
 				"type": "bool"
+			},
+			{
+				"hidden": false,
+				"id": "text_item_proc",
+				"max": null,
+				"min": null,
+				"name": "item",
+				"presentable": false,
+				"required": false,
+				"system": false,
+				"type": "text"
 			},
 			{
 				"hidden": false,

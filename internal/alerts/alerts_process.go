@@ -10,10 +10,6 @@ import (
 
 // HandleProcessAlerts evaluates process-related alerts (Process, ProcessCpu, ProcessMem).
 func (am *AlertManager) HandleProcessAlerts(systemRecord *core.Record, data *system.CombinedData) error {
-	if len(data.Processes) == 0 {
-		return nil
-	}
-
 	alerts := am.alertsCache.GetAlertsByNames(systemRecord.Id, "Process", "ProcessCpu", "ProcessMem")
 	if len(alerts) == 0 {
 		return nil
