@@ -38,13 +38,18 @@ const failedUpdateToast = (error: unknown) => {
 
 /** Create or update alerts for a given name and systems */
 const upsertAlerts = debounce(
-	async ({ name, item, value, min, systems }: { name: string; item: string; value: number; min: number; systems: string[] }) => {
+	async ({ id, name, item, value, min, systems }: { id?: string; name: string; item: string; value: number; min: number; systems: string[] }) => {
 		try {
-			await pb.send<{ success: boolean }>(endpoint, {
+			const result = await pb.send<{ success: boolean; duplicates?: string[] }>(endpoint, {
 				method: "POST",
-				// overwrite is always true because we've done filtering client side
-				body: { name, item, value, min, systems, overwrite: true },
+				body: { id, name, item, value, min, systems, overwrite: true },
 			})
+			if (result.duplicates?.length) {
+				toast({
+					title: t`Duplicate alert detected`,
+					description: t`An alert with the same configuration already exists. A new alert has been created anyway.`,
+				})
+			}
 		} catch (error) {
 			failedUpdateToast(error)
 		}
@@ -53,11 +58,11 @@ const upsertAlerts = debounce(
 )
 
 /** Delete alerts for a given name and systems */
-const deleteAlerts = debounce(async ({ name, item, systems }: { name: string; item: string; systems: string[] }) => {
+const deleteAlerts = debounce(async ({ id, name, item, systems }: { id?: string; name: string; item: string; systems: string[] }) => {
 	try {
 		await pb.send<{ success: boolean }>(endpoint, {
 			method: "DELETE",
-			body: { name, item, systems },
+			body: { id, name, item, systems },
 		})
 	} catch (error) {
 		failedUpdateToast(error)
@@ -87,20 +92,21 @@ export const AlertDialogContent = memo(function AlertDialogContent({ system }: {
 		try {
 			const currentTargetAlerts = $alerts.get()[system.id] ?? new Map()
 			// Alert names present on target but absent from source should be deleted
-			const namesToDelete = Array.from(currentTargetAlerts.keys()).filter((name) => !sourceAlerts.has(name))
+			const sourceAlertNames = new Set(Array.from(sourceAlerts.values()).map((a) => a.name))
+			const toDelete = Array.from(currentTargetAlerts.values()).filter((a) => !sourceAlertNames.has(a.name))
 			await Promise.all([
 				...Array.from(sourceAlerts.values()).map(({ name, item, value, min }) =>
 					pb.send<{ success: boolean }>(endpoint, {
 						method: "POST",
-						body: { name, item: alert.item || "", value, min, systems: [system.id], overwrite: true },
+						body: { name, item: item || "", value, min, systems: [system.id], overwrite: true },
 						requestKey: name,
 					})
 				),
-				...namesToDelete.map((name) =>
+				...toDelete.map((a) =>
 					pb.send<{ success: boolean }>(endpoint, {
 						method: "DELETE",
-						body: { name, item: "", systems: [system.id] },
-						requestKey: name,
+						body: { id: a.id, name: a.name, item: a.item || "", systems: [system.id] },
+						requestKey: a.id,
 					})
 				),
 			])
@@ -108,7 +114,7 @@ export const AlertDialogContent = memo(function AlertDialogContent({ system }: {
 			// before the realtime subscription event arrives.
 			const newSystemAlerts = new Map<string, AlertRecord>()
 			for (const alert of sourceAlerts.values()) {
-				newSystemAlerts.set(alert.item ? `${alert.name}:${alert.item}` : alert.name, { ...alert, system: system.id, triggered: false })
+				newSystemAlerts.set(alert.id, { ...alert, system: system.id, triggered: false })
 			}
 			$alerts.setKey(system.id, newSystemAlerts)
 			setCopyKey((k) => k + 1)
@@ -209,7 +215,7 @@ export const AlertDialogContent = memo(function AlertDialogContent({ system }: {
 									key={name}
 									alertKey={name}
 									data={info}
-									alert={systemAlerts.get(name)}
+									alert={Array.from(systemAlerts.values()).find((a) => a.name === name)}
 									system={system}
 								/>
 							)
@@ -250,7 +256,7 @@ export const AlertDialogContent = memo(function AlertDialogContent({ system }: {
 									key={name}
 									alertKey={name}
 									system={system}
-									alert={systemAlerts.get(name)}
+									alert={Array.from(systemAlerts.values()).find((a) => a.name === name)}
 									data={info}
 									global={true}
 									overwriteExisting={!!overwriteExisting}
@@ -304,7 +310,7 @@ export function AlertContent({
 		const allSystems = $systems.get()
 		const systemIds: string[] = []
 		for (const system of allSystems) {
-			if (overwriteExisting || !initialAlertsState[system.id]?.has(item ? `${alertKey}:${item}` : alertKey)) {
+			if (overwriteExisting || !Array.from((initialAlertsState[system.id] ?? new Map()).values()).some((a) => a.name === alertKey && (item ? a.item === item : !a.item))) {
 				systemIds.push(system.id)
 			}
 		}
@@ -315,6 +321,7 @@ export function AlertContent({
 		const systems = getSystemIds()
 		systems.length &&
 			upsertAlerts({
+				id: alert?.id,
 				name: alertKey,
 				item,
 				value,
@@ -357,10 +364,10 @@ export function AlertContent({
 						if (newChecked) {
 							sendUpsert(min, value)
 						} else {
-							deleteAlerts({ name: alertKey, item, systems: getSystemIds() })
+							deleteAlerts({ id: alert?.id, name: alertKey, item, systems: getSystemIds() })
 							if (overwriteExisting) {
 								for (const curAlerts of Object.values(initialAlertsState)) {
-								curAlerts.delete(alertKey)
+								curAlerts.delete(alert?.id ?? "")
 							}
 							}
 						}

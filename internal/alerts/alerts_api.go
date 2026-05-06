@@ -19,6 +19,7 @@ func UpsertUserAlerts(e *core.RequestEvent) error {
 	userID := e.Auth.Id
 
 	reqData := struct {
+		Id        string   `json:"id"`
 		Min       uint8    `json:"min"`
 		Value     float64  `json:"value"`
 		Name      string   `json:"name"`
@@ -38,42 +39,32 @@ func UpsertUserAlerts(e *core.RequestEvent) error {
 
 	err = e.App.RunInTransaction(func(txApp core.App) error {
 		for _, systemId := range reqData.Systems {
-			// find existing matching alert
-			var alertRecord *core.Record
-			var err error
-			if reqData.Item == "" {
-				alertRecord, err = txApp.FindFirstRecordByFilter(alertsCollection,
-					"system={:system} && name={:name} && user={:user} && (item={:item} || item=null)",
-					dbx.Params{"system": systemId, "name": reqData.Name, "user": userID, "item": ""})
+			if reqData.Id != "" {
+				// Update existing alert by ID
+				alertRecord, err := txApp.FindRecordById(alertsCollection, reqData.Id)
+				if err != nil {
+					return err
+				}
+				if alertRecord.GetString("user") != userID {
+					return e.ForbiddenError("Not your alert", nil)
+				}
+				alertRecord.Set("value", reqData.Value)
+				alertRecord.Set("min", reqData.Min)
+				if err := txApp.SaveNoValidate(alertRecord); err != nil {
+					return err
+				}
 			} else {
-				alertRecord, err = txApp.FindFirstRecordByFilter(alertsCollection,
-					"system={:system} && name={:name} && user={:user} && item={:item}",
-					dbx.Params{"system": systemId, "name": reqData.Name, "user": userID, "item": reqData.Item})
-			}
-
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
-				return err
-			}
-
-			// skip if alert already exists and overwrite is not set
-			if !reqData.Overwrite && alertRecord != nil {
-				continue
-			}
-
-			// create new alert if it doesn't exist
-			if alertRecord == nil {
-				alertRecord = core.NewRecord(alertsCollection)
+				// Create a new alert
+				alertRecord := core.NewRecord(alertsCollection)
 				alertRecord.Set("user", userID)
 				alertRecord.Set("system", systemId)
 				alertRecord.Set("name", reqData.Name)
 				alertRecord.Set("item", reqData.Item)
-			}
-
-			alertRecord.Set("value", reqData.Value)
-			alertRecord.Set("min", reqData.Min)
-
-			if err := txApp.SaveNoValidate(alertRecord); err != nil {
-				return err
+				alertRecord.Set("value", reqData.Value)
+				alertRecord.Set("min", reqData.Min)
+				if err := txApp.SaveNoValidate(alertRecord); err != nil {
+					return err
+				}
 			}
 		}
 		return nil
@@ -83,7 +74,21 @@ func UpsertUserAlerts(e *core.RequestEvent) error {
 		return err
 	}
 
-	return e.JSON(http.StatusOK, map[string]any{"success": true})
+	// Check for duplicates (same user, system, name, item) for warning
+	var duplicateSystems []string
+	for _, systemId := range reqData.Systems {
+		count, _ := e.App.CountRecords("alerts", dbx.HashExp{
+			"user": userID, "system": systemId, "name": reqData.Name, "item": reqData.Item,
+		})
+		if count > 1 {
+			duplicateSystems = append(duplicateSystems, systemId)
+		}
+	}
+
+	return e.JSON(http.StatusOK, map[string]any{
+		"success":    true,
+		"duplicates": duplicateSystems,
+	})
 }
 
 // DeleteUserAlerts handles API request to delete alerts for a user across multiple systems
@@ -92,6 +97,7 @@ func DeleteUserAlerts(e *core.RequestEvent) error {
 	userID := e.Auth.Id
 
 	reqData := struct {
+		Id        string   `json:"id"`
 		AlertName string   `json:"name"`
 		Item      string   `json:"item"`
 		Systems   []string `json:"systems"`
@@ -105,31 +111,43 @@ func DeleteUserAlerts(e *core.RequestEvent) error {
 
 	err = e.App.RunInTransaction(func(txApp core.App) error {
 		for _, systemId := range reqData.Systems {
-			// Find existing alert to delete
-			var alertRecord *core.Record
-			var err error
-			if reqData.Item == "" {
-				alertRecord, err = txApp.FindFirstRecordByFilter("alerts",
-					"system={:system} && name={:name} && user={:user} && (item={:item} || item=null)",
-					dbx.Params{"system": systemId, "name": reqData.AlertName, "user": userID, "item": ""})
-			} else {
-				alertRecord, err = txApp.FindFirstRecordByFilter("alerts",
-					"system={:system} && name={:name} && user={:user} && item={:item}",
-					dbx.Params{"system": systemId, "name": reqData.AlertName, "user": userID, "item": reqData.Item})
-			}
-
-			if err != nil {
-				if errors.Is(err, sql.ErrNoRows) {
-					// alert doesn't exist, continue to next system
-					continue
+			if reqData.Id != "" {
+				// Delete specific alert by ID
+				alertRecord, err := txApp.FindRecordById("alerts", reqData.Id)
+				if err != nil {
+					if errors.Is(err, sql.ErrNoRows) {
+						continue
+					}
+					return err
 				}
-				return err
+				if alertRecord.GetString("user") != userID {
+					return e.ForbiddenError("Not your alert", nil)
+				}
+				if err := txApp.Delete(alertRecord); err != nil {
+					return err
+				}
+				numDeleted++
+			} else {
+				// Delete ALL matching alerts for this system
+				params := dbx.Params{"system": systemId, "name": reqData.AlertName, "user": userID}
+				var expr dbx.Expression
+				if reqData.Item != "" {
+					params["item"] = reqData.Item
+					expr = dbx.NewExp("system={:system} && name={:name} && user={:user} && item={:item}", params)
+				} else {
+					expr = dbx.NewExp("system={:system} && name={:name} && user={:user}", params)
+				}
+				records, err := txApp.FindAllRecords("alerts", expr)
+				if err != nil {
+					return err
+				}
+				for _, record := range records {
+					if err := txApp.Delete(record); err != nil {
+						return err
+					}
+					numDeleted++
+				}
 			}
-
-			if err := txApp.Delete(alertRecord); err != nil {
-				return err
-			}
-			numDeleted++
 		}
 		return nil
 	})

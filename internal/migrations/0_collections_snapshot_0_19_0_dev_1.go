@@ -153,7 +153,7 @@ func init() {
 			}
 		],
 		"indexes": [
-			"CREATE UNIQUE INDEX ` + "`" + `idx_alerts_user_system_name_item` + "`" + ` ON ` + "`" + `alerts` + "`" + ` (\n  ` + "`" + `user` + "`" + `,\n  ` + "`" + `system` + "`" + `,\n  ` + "`" + `name` + "`" + `,\n  ` + "`" + `item` + "`" + `\n)"
+			"CREATE INDEX ` + "`" + `idx_alerts_user_system_name_item` + "`" + ` ON ` + "`" + `alerts` + "`" + ` (\n  ` + "`" + `user` + "`" + `,\n  ` + "`" + `system` + "`" + `,\n  ` + "`" + `name` + "`" + `,\n  ` + "`" + `item` + "`" + `\n)"
 		],
 		"system": false
 	},

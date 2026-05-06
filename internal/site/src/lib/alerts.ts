@@ -142,23 +142,23 @@ export const alertManager = (() => {
 		return alert.item ? `${alert.name}:${alert.item}` : alert.name
 	}
 
-	/** Format alerts into a map of system id to alert key to alert record */
+	/** Format alerts into a map of system id to record id to alert record */
 	function add(alerts: AlertRecord[]) {
 		for (const alert of alerts) {
 			const systemId = alert.system
 			const systemAlerts = $alerts.get()[systemId] ?? new Map()
 			const newAlerts = new Map(systemAlerts)
-			newAlerts.set(alertKey(alert), alert)
+			newAlerts.set(alert.id, alert)
 			$alerts.setKey(systemId, newAlerts)
 		}
 	}
 
-	function remove(alerts: Pick<AlertRecord, "name" | "item" | "system">[]) {
+	function remove(alerts: Pick<AlertRecord, "id" | "system">[]) {
 		for (const alert of alerts) {
 			const systemId = alert.system
 			const systemAlerts = $alerts.get()[systemId]
 			const newAlerts = new Map(systemAlerts)
-			newAlerts.delete(alertKey(alert))
+			newAlerts.delete(alert.id)
 			$alerts.setKey(systemId, newAlerts)
 		}
 	}
@@ -176,7 +176,7 @@ export const alertManager = (() => {
 
 		return (data: RecordSubscription<AlertRecord>) => {
 			const { record } = data
-			batch.set(`${record.system}${alertKey(record)}`, data)
+			batch.set(record.id, data)
 			clearTimeout(timeout)
 			timeout = setTimeout(() => {
 				const groups = { create: [], update: [], delete: [] } as Record<string, AlertRecord[]>
