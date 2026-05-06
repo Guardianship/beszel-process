@@ -2,14 +2,7 @@ import type { Column, ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { cn, decimalString, formatBytes, hourWithSeconds } from "@/lib/utils"
 import type { ProcessRecord } from "@/types"
-import {
-	ActivityIcon,
-	ArrowUpDownIcon,
-	ClockIcon,
-	CpuIcon,
-	MemoryStickIcon,
-	TerminalSquareIcon,
-} from "lucide-react"
+import { ActivityIcon, ArrowUpDownIcon, ClockIcon, CpuIcon, MemoryStickIcon, TerminalSquareIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { t } from "@lingui/core/macro"
 
@@ -97,20 +90,27 @@ export const processTableCols: ColumnDef<ProcessRecord>[] = [
 		cell: ({ getValue }) => {
 			const timestamp = getValue() as string
 			if (!timestamp) return null
-			return (
-				<span className="ms-1.5 tabular-nums">
-					{hourWithSeconds(new Date(timestamp).toISOString())}
-				</span>
-			)
+			return <span className="ms-1.5 tabular-nums">{hourWithSeconds(new Date(timestamp).toISOString())}</span>
 		},
 	},
 ]
 
-function HeaderButton({ column, name, Icon }: { column: Column<ProcessRecord>; name: string; Icon: React.ElementType }) {
+function HeaderButton({
+	column,
+	name,
+	Icon,
+}: {
+	column: Column<ProcessRecord>
+	name: string
+	Icon: React.ElementType
+}) {
 	const isSorted = column.getIsSorted()
 	return (
 		<Button
-			className={cn("h-9 px-3 flex items-center gap-2 duration-50", isSorted && "bg-accent/70 light:bg-accent text-accent-foreground/90")}
+			className={cn(
+				"h-9 px-3 flex items-center gap-2 duration-50",
+				isSorted && "bg-accent/70 light:bg-accent text-accent-foreground/90"
+			)}
 			variant="ghost"
 			onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 		>

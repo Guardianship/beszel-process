@@ -211,6 +211,7 @@ func TestUserAlertsApi(t *testing.T) {
 				beszelTests.ClearCollection(t, app, "alerts")
 				beszelTests.CreateRecord(app, "alerts", map[string]any{
 					"name":   "CPU",
+						"item":   "",
 					"system": system1.Id,
 					"user":   user1.Id,
 					"value":  80,
@@ -245,6 +246,7 @@ func TestUserAlertsApi(t *testing.T) {
 				beszelTests.ClearCollection(t, app, "alerts")
 				beszelTests.CreateRecord(app, "alerts", map[string]any{
 					"name":   "CPU",
+						"item":   "",
 					"system": system2.Id,
 					"user":   user2.Id,
 					"value":  80,
@@ -273,6 +275,7 @@ func TestUserAlertsApi(t *testing.T) {
 				beszelTests.ClearCollection(t, app, "alerts")
 				beszelTests.CreateRecord(app, "alerts", map[string]any{
 					"name":   "CPU",
+						"item":   "",
 					"system": system1.Id,
 					"user":   user1.Id,
 					"value":  80,
@@ -302,6 +305,7 @@ func TestUserAlertsApi(t *testing.T) {
 				beszelTests.ClearCollection(t, app, "alerts")
 				beszelTests.CreateRecord(app, "alerts", map[string]any{
 					"name":   "CPU",
+						"item":   "",
 					"system": system1.Id,
 					"user":   user1.Id,
 					"value":  80,
@@ -332,6 +336,7 @@ func TestUserAlertsApi(t *testing.T) {
 				for _, systemId := range []string{system1.Id, system2.Id} {
 					_, err := beszelTests.CreateRecord(app, "alerts", map[string]any{
 						"name":   "Memory",
+						"item":   "",
 						"system": systemId,
 						"user":   user1.Id,
 						"value":  90,
@@ -366,6 +371,7 @@ func TestUserAlertsApi(t *testing.T) {
 				for _, user := range []string{user1.Id, user2.Id} {
 					beszelTests.CreateRecord(app, "alerts", map[string]any{
 						"name":   "CPU",
+						"item":   "",
 						"system": system2.Id,
 						"user":   user,
 						"value":  80,

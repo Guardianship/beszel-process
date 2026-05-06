@@ -396,6 +396,10 @@ msgstr "Click on a system to view more information."
 msgid "Click to copy"
 msgstr "Click to copy"
 
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Closed"
+msgstr "Closed"
+
 #: src/components/login/forgot-pass-form.tsx
 #: src/components/login/forgot-pass-form.tsx
 msgid "Command line instructions"
@@ -488,6 +492,7 @@ msgid "Core"
 msgstr "Core"
 
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "CPU"
@@ -806,6 +811,8 @@ msgstr "Failed: {0}"
 #: src/components/containers-table/containers-table.tsx
 #: src/components/routes/settings/alerts-history-data-table.tsx
 #: src/components/routes/system/chart-card.tsx
+#: src/components/routes/system/port-table.tsx
+#: src/components/routes/system/process-table.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 #: src/components/systems-table/systems-table.tsx
@@ -1041,6 +1048,7 @@ msgstr "Max 1 min"
 
 #: src/components/containers-table/containers-table-columns.tsx
 #: src/components/routes/system/info-bar.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 #: src/components/systemd-table/systemd-table.tsx
 #: src/components/systems-table/systems-table-columns.tsx
@@ -1073,6 +1081,7 @@ msgstr "Model"
 #: src/components/add-system.tsx
 #: src/components/alerts-history-columns.tsx
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Name"
@@ -1114,6 +1123,8 @@ msgstr "No results found."
 #: src/components/containers-table/containers-table.tsx
 #: src/components/containers-table/containers-table.tsx
 #: src/components/routes/settings/alerts-history-data-table.tsx
+#: src/components/routes/system/port-table.tsx
+#: src/components/routes/system/process-table.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "No results."
@@ -1151,6 +1162,10 @@ msgstr "One-time"
 msgid "One-time password"
 msgstr "One-time password"
 
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Open"
+msgstr "Open"
+
 #: src/components/routes/settings/quiet-hours.tsx
 #: src/components/routes/settings/tokens-fingerprints.tsx
 #: src/components/routes/settings/tokens-fingerprints.tsx
@@ -1158,6 +1173,10 @@ msgstr "One-time password"
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Open menu"
 msgstr "Open menu"
+
+#: src/components/routes/system/port-table.tsx
+msgid "Open: {openCount}"
+msgstr "Open: {openCount}"
 
 #: src/components/login/auth-form.tsx
 msgid "Or continue with"
@@ -1245,6 +1264,10 @@ msgstr "Permanent"
 msgid "Persistence"
 msgstr "Persistence"
 
+#: src/components/routes/system/process-table-columns.tsx
+msgid "PID"
+msgstr "PID"
+
 #: src/components/routes/settings/notifications.tsx
 msgid "Please <0>configure an SMTP server</0> to ensure alerts are delivered."
 msgstr "Please <0>configure an SMTP server</0> to ensure alerts are delivered."
@@ -1279,8 +1302,19 @@ msgid "Please sign in to your account"
 msgstr "Please sign in to your account"
 
 #: src/components/add-system.tsx
+#: src/components/routes/system/port-table-columns.tsx
+#: src/lib/alerts.ts
 msgid "Port"
 msgstr "Port"
+
+#: src/lib/alerts.ts
+msgid "Port Closed"
+msgstr "Port Closed"
+
+#: src/components/routes/system.tsx
+#: src/components/routes/system/port-table.tsx
+msgid "Ports"
+msgstr "Ports"
 
 #: src/components/containers-table/containers-table-columns.tsx
 msgctxt "Container ports"
@@ -1301,9 +1335,34 @@ msgstr "Precise utilization at the recorded time"
 msgid "Preferred Language"
 msgstr "Preferred Language"
 
+#: src/lib/alerts.ts
+msgid "Process"
+msgstr "Process"
+
+#: src/lib/alerts.ts
+msgid "Process CPU"
+msgstr "Process CPU"
+
+#: src/lib/alerts.ts
+msgid "Process Down"
+msgstr "Process Down"
+
+#: src/lib/alerts.ts
+msgid "Process Memory"
+msgstr "Process Memory"
+
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Process started"
 msgstr "Process started"
+
+#: src/components/routes/system.tsx
+#: src/components/routes/system/process-table.tsx
+msgid "Processes"
+msgstr "Processes"
+
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Protocol"
+msgstr "Protocol"
 
 #. Use 'Key' if your language requires many more characters
 #: src/components/add-system.tsx
@@ -1388,6 +1447,14 @@ msgstr "Rotate token"
 msgid "Rows per page"
 msgstr "Rows per page"
 
+#: src/components/routes/system/process-table-columns.tsx
+msgid "Running"
+msgstr "Running"
+
+#: src/components/routes/system/process-table.tsx
+msgid "Running: {runningCount}"
+msgstr "Running: {runningCount}"
+
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Runtime Metrics"
 msgstr "Runtime Metrics"
@@ -1469,6 +1536,10 @@ msgstr "Sent"
 msgid "Serial Number"
 msgstr "Serial Number"
 
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Service"
+msgstr "Service"
+
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Service Details"
 msgstr "Service Details"
@@ -1525,12 +1596,18 @@ msgid "State"
 msgstr "State"
 
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/port-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 #: src/components/systems-table/systems-table.tsx
 #: src/lib/alerts.ts
 msgid "Status"
 msgstr "Status"
+
+#: src/components/routes/system/process-table-columns.tsx
+msgid "Stopped"
+msgstr "Stopped"
 
 #: src/components/systemd-table/systemd-table-columns.tsx
 msgid "Sub State"
@@ -1699,6 +1776,8 @@ msgid "Total time spent on read/write (can exceed 100%)"
 msgstr "Total time spent on read/write (can exceed 100%)"
 
 #. placeholder {0}: data.length
+#: src/components/routes/system/port-table.tsx
+#: src/components/routes/system/process-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Total: {0}"
 msgstr "Total: {0}"
@@ -1722,6 +1801,22 @@ msgstr "Triggers when 15 minute load average exceeds a threshold"
 #: src/lib/alerts.ts
 msgid "Triggers when 5 minute load average exceeds a threshold"
 msgstr "Triggers when 5 minute load average exceeds a threshold"
+
+#: src/lib/alerts.ts
+msgid "Triggers when a port closes or reopens"
+msgstr "Triggers when a port closes or reopens"
+
+#: src/lib/alerts.ts
+msgid "Triggers when a process CPU usage exceeds a threshold"
+msgstr "Triggers when a process CPU usage exceeds a threshold"
+
+#: src/lib/alerts.ts
+msgid "Triggers when a process goes down or comes back up"
+msgstr "Triggers when a process goes down or comes back up"
+
+#: src/lib/alerts.ts
+msgid "Triggers when a process memory usage exceeds a threshold"
+msgstr "Triggers when a process memory usage exceeds a threshold"
 
 #: src/lib/alerts.ts
 msgid "Triggers when any sensor exceeds a threshold"
@@ -1800,6 +1895,8 @@ msgid "Update"
 msgstr "Update"
 
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/port-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 msgid "Updated"
@@ -1814,6 +1911,7 @@ msgid "Upload"
 msgstr "Upload"
 
 #: src/components/routes/system/info-bar.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Uptime"
 msgstr "Uptime"

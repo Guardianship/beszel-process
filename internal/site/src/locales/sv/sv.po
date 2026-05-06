@@ -401,6 +401,10 @@ msgstr "Klicka på ett system för att visa mer information."
 msgid "Click to copy"
 msgstr "Klicka för att kopiera"
 
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Closed"
+msgstr ""
+
 #: src/components/login/forgot-pass-form.tsx
 #: src/components/login/forgot-pass-form.tsx
 msgid "Command line instructions"
@@ -493,6 +497,7 @@ msgid "Core"
 msgstr "Kärna"
 
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "CPU"
@@ -811,6 +816,8 @@ msgstr "Misslyckades: {0}"
 #: src/components/containers-table/containers-table.tsx
 #: src/components/routes/settings/alerts-history-data-table.tsx
 #: src/components/routes/system/chart-card.tsx
+#: src/components/routes/system/port-table.tsx
+#: src/components/routes/system/process-table.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 #: src/components/systems-table/systems-table.tsx
@@ -1046,6 +1053,7 @@ msgstr ""
 
 #: src/components/containers-table/containers-table-columns.tsx
 #: src/components/routes/system/info-bar.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 #: src/components/systemd-table/systemd-table.tsx
 #: src/components/systems-table/systems-table-columns.tsx
@@ -1078,6 +1086,7 @@ msgstr "Modell"
 #: src/components/add-system.tsx
 #: src/components/alerts-history-columns.tsx
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Name"
@@ -1119,6 +1128,8 @@ msgstr "Inga resultat hittades."
 #: src/components/containers-table/containers-table.tsx
 #: src/components/containers-table/containers-table.tsx
 #: src/components/routes/settings/alerts-history-data-table.tsx
+#: src/components/routes/system/port-table.tsx
+#: src/components/routes/system/process-table.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "No results."
@@ -1156,6 +1167,10 @@ msgstr "Engångs"
 msgid "One-time password"
 msgstr "Engångslösenord"
 
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Open"
+msgstr ""
+
 #: src/components/routes/settings/quiet-hours.tsx
 #: src/components/routes/settings/tokens-fingerprints.tsx
 #: src/components/routes/settings/tokens-fingerprints.tsx
@@ -1163,6 +1178,10 @@ msgstr "Engångslösenord"
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Open menu"
 msgstr "Öppna menyn"
+
+#: src/components/routes/system/port-table.tsx
+msgid "Open: {openCount}"
+msgstr ""
 
 #: src/components/login/auth-form.tsx
 msgid "Or continue with"
@@ -1250,6 +1269,10 @@ msgstr ""
 msgid "Persistence"
 msgstr "Beständighet"
 
+#: src/components/routes/system/process-table-columns.tsx
+msgid "PID"
+msgstr ""
+
 #: src/components/routes/settings/notifications.tsx
 msgid "Please <0>configure an SMTP server</0> to ensure alerts are delivered."
 msgstr "Vänligen <0>konfigurera en SMTP-server</0> för att säkerställa att larm levereras."
@@ -1284,7 +1307,18 @@ msgid "Please sign in to your account"
 msgstr "Vänligen logga in på ditt konto"
 
 #: src/components/add-system.tsx
+#: src/components/routes/system/port-table-columns.tsx
+#: src/lib/alerts.ts
 msgid "Port"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Port Closed"
+msgstr ""
+
+#: src/components/routes/system.tsx
+#: src/components/routes/system/port-table.tsx
+msgid "Ports"
 msgstr ""
 
 #: src/components/containers-table/containers-table-columns.tsx
@@ -1306,9 +1340,34 @@ msgstr "Exakt användning vid den registrerade tidpunkten"
 msgid "Preferred Language"
 msgstr "Föredraget språk"
 
+#: src/lib/alerts.ts
+msgid "Process"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Process CPU"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Process Down"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Process Memory"
+msgstr ""
+
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Process started"
 msgstr "Process startad"
+
+#: src/components/routes/system.tsx
+#: src/components/routes/system/process-table.tsx
+msgid "Processes"
+msgstr ""
+
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Protocol"
+msgstr ""
 
 #. Use 'Key' if your language requires many more characters
 #: src/components/add-system.tsx
@@ -1393,6 +1452,14 @@ msgstr "Rotera token"
 msgid "Rows per page"
 msgstr "Rader per sida"
 
+#: src/components/routes/system/process-table-columns.tsx
+msgid "Running"
+msgstr ""
+
+#: src/components/routes/system/process-table.tsx
+msgid "Running: {runningCount}"
+msgstr ""
+
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Runtime Metrics"
 msgstr "Körningsmätvärden"
@@ -1474,6 +1541,10 @@ msgstr "Skickat"
 msgid "Serial Number"
 msgstr "Serienummer"
 
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Service"
+msgstr ""
+
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Service Details"
 msgstr "Tjänstedetaljer"
@@ -1530,11 +1601,17 @@ msgid "State"
 msgstr "Tillstånd"
 
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/port-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 #: src/components/systems-table/systems-table.tsx
 #: src/lib/alerts.ts
 msgid "Status"
+msgstr ""
+
+#: src/components/routes/system/process-table-columns.tsx
+msgid "Stopped"
 msgstr ""
 
 #: src/components/systemd-table/systemd-table-columns.tsx
@@ -1704,6 +1781,8 @@ msgid "Total time spent on read/write (can exceed 100%)"
 msgstr ""
 
 #. placeholder {0}: data.length
+#: src/components/routes/system/port-table.tsx
+#: src/components/routes/system/process-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Total: {0}"
 msgstr "Totalt: {0}"
@@ -1727,6 +1806,22 @@ msgstr "Utlöses när 15-minuters genomsnittlig belastning överskrider ett trö
 #: src/lib/alerts.ts
 msgid "Triggers when 5 minute load average exceeds a threshold"
 msgstr "Utlöses när 5-minuters genomsnittlig belastning överskrider ett tröskelvärde"
+
+#: src/lib/alerts.ts
+msgid "Triggers when a port closes or reopens"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Triggers when a process CPU usage exceeds a threshold"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Triggers when a process goes down or comes back up"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Triggers when a process memory usage exceeds a threshold"
+msgstr ""
 
 #: src/lib/alerts.ts
 msgid "Triggers when any sensor exceeds a threshold"
@@ -1805,6 +1900,8 @@ msgid "Update"
 msgstr "Uppdatera"
 
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/port-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 msgid "Updated"
@@ -1819,6 +1916,7 @@ msgid "Upload"
 msgstr "Ladda upp"
 
 #: src/components/routes/system/info-bar.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Uptime"
 msgstr "Drifttid"

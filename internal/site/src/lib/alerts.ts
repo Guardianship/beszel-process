@@ -98,18 +98,21 @@ export const alertInfo: Record<string, AlertInfo> = {
 		icon: ActivityIcon,
 		desc: () => t`Triggers when a process goes down or comes back up`,
 		singleDesc: () => t`Process Down`,
+		hasItem: true,
 	},
 	ProcessCpu: {
 		name: () => t`Process CPU`,
 		unit: "%",
 		icon: ActivityIcon,
 		desc: () => t`Triggers when a process CPU usage exceeds a threshold`,
+		hasItem: true,
 	},
 	ProcessMem: {
 		name: () => t`Process Memory`,
 		unit: "%",
 		icon: MemoryStickIcon,
 		desc: () => t`Triggers when a process memory usage exceeds a threshold`,
+		hasItem: true,
 	},
 	Port: {
 		name: () => t`Port`,
@@ -117,6 +120,7 @@ export const alertInfo: Record<string, AlertInfo> = {
 		icon: EthernetIcon,
 		desc: () => t`Triggers when a port closes or reopens`,
 		singleDesc: () => t`Port Closed`,
+		hasItem: true,
 	},
 } as const
 

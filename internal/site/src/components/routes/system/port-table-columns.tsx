@@ -2,12 +2,7 @@ import type { Column, ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { cn, hourWithSeconds } from "@/lib/utils"
 import type { PortRecord } from "@/types"
-import {
-	ActivityIcon,
-	ArrowUpDownIcon,
-	ClockIcon,
-	EthernetPortIcon,
-} from "lucide-react"
+import { ActivityIcon, ArrowUpDownIcon, ClockIcon, EthernetPortIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { t } from "@lingui/core/macro"
 
@@ -60,11 +55,7 @@ export const portTableCols: ColumnDef<PortRecord>[] = [
 		cell: ({ getValue }) => {
 			const timestamp = getValue() as string
 			if (!timestamp) return null
-			return (
-				<span className="ms-1.5 tabular-nums">
-					{hourWithSeconds(new Date(timestamp).toISOString())}
-				</span>
-			)
+			return <span className="ms-1.5 tabular-nums">{hourWithSeconds(new Date(timestamp).toISOString())}</span>
 		},
 	},
 ]
@@ -73,7 +64,10 @@ function HeaderButton({ column, name, Icon }: { column: Column<PortRecord>; name
 	const isSorted = column.getIsSorted()
 	return (
 		<Button
-			className={cn("h-9 px-3 flex items-center gap-2 duration-50", isSorted && "bg-accent/70 light:bg-accent text-accent-foreground/90")}
+			className={cn(
+				"h-9 px-3 flex items-center gap-2 duration-50",
+				isSorted && "bg-accent/70 light:bg-accent text-accent-foreground/90"
+			)}
 			variant="ghost"
 			onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 		>

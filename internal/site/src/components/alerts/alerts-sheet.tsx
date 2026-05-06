@@ -172,15 +172,48 @@ export const AlertDialogContent = memo(function AlertDialogContent({ system }: {
 				</div>
 				<TabsContent value="system">
 					<div key={copyKey} className="grid gap-3">
-						{alertKeys.map((name) => (
-							<AlertContent
-								key={name}
-								alertKey={name}
-								data={alertInfo[name as keyof typeof alertInfo]}
-								alert={systemAlerts.get(name)}
-								system={system}
-							/>
-						))}
+						{alertKeys.map((name) => {
+							const info = alertInfo[name as keyof typeof alertInfo]
+							if (info.hasItem) {
+								const existingAlerts = Array.from(systemAlerts.entries())
+									.filter(([key]) => key.startsWith(name + ":"))
+									.map(([key, alert]) => ({ key, alert }))
+								return (
+									<div key={name} className="rounded-lg border border-muted-foreground/15">
+										<div className="flex flex-row items-center justify-between gap-4 p-4 pb-2">
+											<p className="font-semibold flex gap-3 items-center">
+												{(() => { const I = info.icon; return <I className="h-4 w-4 opacity-85" /> })()}
+												{info.name()}
+											</p>
+										</div>
+										{existingAlerts.map(({ key, alert }) => (
+											<AlertContent
+												key={key}
+												alertKey={name}
+												data={info}
+												alert={alert}
+												system={system}
+											/>
+										))}
+										<AlertContent
+											key={name + "-new"}
+											alertKey={name}
+											data={info}
+											system={system}
+										/>
+									</div>
+								)
+							}
+							return (
+								<AlertContent
+									key={name}
+									alertKey={name}
+									data={info}
+									alert={systemAlerts.get(name)}
+									system={system}
+								/>
+							)
+						})}
 					</div>
 				</TabsContent>
 				<TabsContent value="global">
@@ -197,18 +230,34 @@ export const AlertDialogContent = memo(function AlertDialogContent({ system }: {
 						<Trans>Overwrite existing alerts</Trans>
 					</label>
 					<div className="grid gap-3">
-						{alertKeys.map((name) => (
-							<AlertContent
-								key={name}
-								alertKey={name}
-								system={system}
-								alert={systemAlerts.get(name)}
-								data={alertInfo[name as keyof typeof alertInfo]}
-								global={true}
-								overwriteExisting={!!overwriteExisting}
-								initialAlertsState={alertsWhenGlobalSelected}
-							/>
-						))}
+						{alertKeys.map((name) => {
+							const info = alertInfo[name as keyof typeof alertInfo]
+							if (info.hasItem) {
+								return (
+									<AlertContent
+										key={name}
+										alertKey={name}
+										data={info}
+										system={system}
+										global={true}
+										overwriteExisting={!!overwriteExisting}
+										initialAlertsState={alertsWhenGlobalSelected}
+									/>
+					)
+							}
+							return (
+								<AlertContent
+									key={name}
+									alertKey={name}
+									system={system}
+									alert={systemAlerts.get(name)}
+									data={info}
+									global={true}
+									overwriteExisting={!!overwriteExisting}
+									initialAlertsState={alertsWhenGlobalSelected}
+								/>
+							)
+						})}
 					</div>
 				</TabsContent>
 			</Tabs>
@@ -255,7 +304,7 @@ export function AlertContent({
 		const allSystems = $systems.get()
 		const systemIds: string[] = []
 		for (const system of allSystems) {
-			if (overwriteExisting || !initialAlertsState[system.id]?.has(alertKey)) {
+			if (overwriteExisting || !initialAlertsState[system.id]?.has(item ? `${alertKey}:${item}` : alertKey)) {
 				systemIds.push(system.id)
 			}
 		}
@@ -267,6 +316,7 @@ export function AlertContent({
 		systems.length &&
 			upsertAlerts({
 				name: alertKey,
+				item,
 				value,
 				min,
 				systems,
@@ -284,25 +334,34 @@ export function AlertContent({
 				<div className="grid gap-1 select-none">
 					<p className="font-semibold flex gap-3 items-center">
 						<Icon className="h-4 w-4 opacity-85" /> {alertData.name()}
+							{alertData.hasItem && item && <span className="text-sm font-normal text-muted-foreground">- {item}</span>}
 					</p>
 					{!checked && <span className="block text-sm text-muted-foreground">{alertData.desc()}</span>}
+					{!checked && alertData.hasItem && (
+						<Input
+							type="text"
+							value={item}
+							onChange={(e) => setItem(e.target.value)}
+							placeholder={alertKey === "Port" ? "80/tcp" : "Process name"}
+							className="h-7 mt-1"
+							onKeyDown={(e) => { if (e.key === "Enter" && item.trim()) { setChecked(true); sendUpsert(min, value) } }}
+						/>
+					)}
 				</div>
 				<Switch
 					id={`s${name}`}
 					checked={checked}
 					onCheckedChange={(newChecked) => {
+						if (newChecked && alertData.hasItem && !item.trim()) return
 						setChecked(newChecked)
 						if (newChecked) {
-							// if alert checked, create or update alert
 							sendUpsert(min, value)
 						} else {
-							// if unchecked, delete alert (unless global and overwriteExisting is false)
 							deleteAlerts({ name: alertKey, item, systems: getSystemIds() })
-							// when force deleting all alerts of a type, also remove them from initialAlertsState
 							if (overwriteExisting) {
 								for (const curAlerts of Object.values(initialAlertsState)) {
-									curAlerts.delete(alertKey)
-								}
+								curAlerts.delete(alertKey)
+							}
 							}
 						}
 					}}
@@ -315,10 +374,8 @@ export function AlertContent({
 							<Input
 								type="text"
 								value={item}
-								onChange={(e) => {
-									setItem(e.target.value)
-									if (checked) sendUpsert(min, value)
-								}}
+								onChange={(e) => setItem(e.target.value)}
+								onBlur={() => { if (checked && item.trim()) sendUpsert(min, value) }}
 								placeholder={alertKey === "Port" ? "80/tcp" : "Process name"}
 								className="h-8"
 							/>

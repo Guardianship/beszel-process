@@ -401,6 +401,10 @@ msgstr "點擊系統以查看更多資訊。"
 msgid "Click to copy"
 msgstr "點擊複製"
 
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Closed"
+msgstr ""
+
 #: src/components/login/forgot-pass-form.tsx
 #: src/components/login/forgot-pass-form.tsx
 msgid "Command line instructions"
@@ -493,6 +497,7 @@ msgid "Core"
 msgstr "核心指標"
 
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "CPU"
@@ -811,6 +816,8 @@ msgstr "失敗：{0}"
 #: src/components/containers-table/containers-table.tsx
 #: src/components/routes/settings/alerts-history-data-table.tsx
 #: src/components/routes/system/chart-card.tsx
+#: src/components/routes/system/port-table.tsx
+#: src/components/routes/system/process-table.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 #: src/components/systems-table/systems-table.tsx
@@ -1046,6 +1053,7 @@ msgstr "最多 1 分鐘"
 
 #: src/components/containers-table/containers-table-columns.tsx
 #: src/components/routes/system/info-bar.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 #: src/components/systemd-table/systemd-table.tsx
 #: src/components/systems-table/systems-table-columns.tsx
@@ -1078,6 +1086,7 @@ msgstr "型號"
 #: src/components/add-system.tsx
 #: src/components/alerts-history-columns.tsx
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Name"
@@ -1119,6 +1128,8 @@ msgstr "找不到結果。"
 #: src/components/containers-table/containers-table.tsx
 #: src/components/containers-table/containers-table.tsx
 #: src/components/routes/settings/alerts-history-data-table.tsx
+#: src/components/routes/system/port-table.tsx
+#: src/components/routes/system/process-table.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "No results."
@@ -1156,6 +1167,10 @@ msgstr "一次性"
 msgid "One-time password"
 msgstr "一次性密碼"
 
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Open"
+msgstr ""
+
 #: src/components/routes/settings/quiet-hours.tsx
 #: src/components/routes/settings/tokens-fingerprints.tsx
 #: src/components/routes/settings/tokens-fingerprints.tsx
@@ -1163,6 +1178,10 @@ msgstr "一次性密碼"
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Open menu"
 msgstr "開啟選單"
+
+#: src/components/routes/system/port-table.tsx
+msgid "Open: {openCount}"
+msgstr ""
 
 #: src/components/login/auth-form.tsx
 msgid "Or continue with"
@@ -1250,6 +1269,10 @@ msgstr "永久"
 msgid "Persistence"
 msgstr "持久性"
 
+#: src/components/routes/system/process-table-columns.tsx
+msgid "PID"
+msgstr ""
+
 #: src/components/routes/settings/notifications.tsx
 msgid "Please <0>configure an SMTP server</0> to ensure alerts are delivered."
 msgstr "請<0>設定一個 SMTP 伺服器</0>以確保能傳送警報。"
@@ -1284,7 +1307,18 @@ msgid "Please sign in to your account"
 msgstr "請登入您的帳號"
 
 #: src/components/add-system.tsx
+#: src/components/routes/system/port-table-columns.tsx
+#: src/lib/alerts.ts
 msgid "Port"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Port Closed"
+msgstr ""
+
+#: src/components/routes/system.tsx
+#: src/components/routes/system/port-table.tsx
+msgid "Ports"
 msgstr ""
 
 #: src/components/containers-table/containers-table-columns.tsx
@@ -1306,9 +1340,34 @@ msgstr "紀錄時間內的精確使用量"
 msgid "Preferred Language"
 msgstr "首選語言"
 
+#: src/lib/alerts.ts
+msgid "Process"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Process CPU"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Process Down"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Process Memory"
+msgstr ""
+
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Process started"
 msgstr "進程啟動"
+
+#: src/components/routes/system.tsx
+#: src/components/routes/system/process-table.tsx
+msgid "Processes"
+msgstr ""
+
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Protocol"
+msgstr ""
 
 #. Use 'Key' if your language requires many more characters
 #: src/components/add-system.tsx
@@ -1393,6 +1452,14 @@ msgstr "重設 Token"
 msgid "Rows per page"
 msgstr "每頁列數"
 
+#: src/components/routes/system/process-table-columns.tsx
+msgid "Running"
+msgstr ""
+
+#: src/components/routes/system/process-table.tsx
+msgid "Running: {runningCount}"
+msgstr ""
+
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Runtime Metrics"
 msgstr "運行時指標"
@@ -1474,6 +1541,10 @@ msgstr "傳送"
 msgid "Serial Number"
 msgstr "序號"
 
+#: src/components/routes/system/port-table-columns.tsx
+msgid "Service"
+msgstr ""
+
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Service Details"
 msgstr "服務詳細資訊"
@@ -1530,12 +1601,18 @@ msgid "State"
 msgstr "狀態"
 
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/port-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 #: src/components/systems-table/systems-table.tsx
 #: src/lib/alerts.ts
 msgid "Status"
 msgstr "狀態"
+
+#: src/components/routes/system/process-table-columns.tsx
+msgid "Stopped"
+msgstr ""
 
 #: src/components/systemd-table/systemd-table-columns.tsx
 msgid "Sub State"
@@ -1704,6 +1781,8 @@ msgid "Total time spent on read/write (can exceed 100%)"
 msgstr ""
 
 #. placeholder {0}: data.length
+#: src/components/routes/system/port-table.tsx
+#: src/components/routes/system/process-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Total: {0}"
 msgstr "總計：{0}"
@@ -1727,6 +1806,22 @@ msgstr "當 15 分鐘平均負載超過閾值時觸發"
 #: src/lib/alerts.ts
 msgid "Triggers when 5 minute load average exceeds a threshold"
 msgstr "當 5 分鐘平均負載超過閾值時觸發"
+
+#: src/lib/alerts.ts
+msgid "Triggers when a port closes or reopens"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Triggers when a process CPU usage exceeds a threshold"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Triggers when a process goes down or comes back up"
+msgstr ""
+
+#: src/lib/alerts.ts
+msgid "Triggers when a process memory usage exceeds a threshold"
+msgstr ""
 
 #: src/lib/alerts.ts
 msgid "Triggers when any sensor exceeds a threshold"
@@ -1805,6 +1900,8 @@ msgid "Update"
 msgstr "更新"
 
 #: src/components/containers-table/containers-table-columns.tsx
+#: src/components/routes/system/port-table-columns.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/routes/system/smart-table.tsx
 #: src/components/systemd-table/systemd-table-columns.tsx
 msgid "Updated"
@@ -1819,6 +1916,7 @@ msgid "Upload"
 msgstr "上傳"
 
 #: src/components/routes/system/info-bar.tsx
+#: src/components/routes/system/process-table-columns.tsx
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Uptime"
 msgstr "運行時間"

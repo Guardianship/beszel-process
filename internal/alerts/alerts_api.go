@@ -39,9 +39,17 @@ func UpsertUserAlerts(e *core.RequestEvent) error {
 	err = e.App.RunInTransaction(func(txApp core.App) error {
 		for _, systemId := range reqData.Systems {
 			// find existing matching alert
-			alertRecord, err := txApp.FindFirstRecordByFilter(alertsCollection,
-				"system={:system} && name={:name} && user={:user} && item={:item}",
-				dbx.Params{"system": systemId, "name": reqData.Name, "user": userID, "item": reqData.Item})
+			var alertRecord *core.Record
+			var err error
+			if reqData.Item == "" {
+				alertRecord, err = txApp.FindFirstRecordByFilter(alertsCollection,
+					"system={:system} && name={:name} && user={:user} && (item={:item} || item=null)",
+					dbx.Params{"system": systemId, "name": reqData.Name, "user": userID, "item": ""})
+			} else {
+				alertRecord, err = txApp.FindFirstRecordByFilter(alertsCollection,
+					"system={:system} && name={:name} && user={:user} && item={:item}",
+					dbx.Params{"system": systemId, "name": reqData.Name, "user": userID, "item": reqData.Item})
+			}
 
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				return err
@@ -98,9 +106,17 @@ func DeleteUserAlerts(e *core.RequestEvent) error {
 	err = e.App.RunInTransaction(func(txApp core.App) error {
 		for _, systemId := range reqData.Systems {
 			// Find existing alert to delete
-			alertRecord, err := txApp.FindFirstRecordByFilter("alerts",
-				"system={:system} && name={:name} && user={:user} && item={:item}",
-				dbx.Params{"system": systemId, "name": reqData.AlertName, "user": userID, "item": reqData.Item})
+			var alertRecord *core.Record
+			var err error
+			if reqData.Item == "" {
+				alertRecord, err = txApp.FindFirstRecordByFilter("alerts",
+					"system={:system} && name={:name} && user={:user} && (item={:item} || item=null)",
+					dbx.Params{"system": systemId, "name": reqData.AlertName, "user": userID, "item": ""})
+			} else {
+				alertRecord, err = txApp.FindFirstRecordByFilter("alerts",
+					"system={:system} && name={:name} && user={:user} && item={:item}",
+					dbx.Params{"system": systemId, "name": reqData.AlertName, "user": userID, "item": reqData.Item})
+			}
 
 			if err != nil {
 				if errors.Is(err, sql.ErrNoRows) {

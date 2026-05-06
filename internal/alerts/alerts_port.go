@@ -2,6 +2,7 @@ package alerts
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/henrygd/beszel/internal/entities/system"
@@ -19,10 +20,14 @@ func (am *AlertManager) HandlePortAlerts(systemRecord *core.Record, data *system
 		return nil
 	}
 
-	// Build a map of port identifier -> PortInfo for quick lookup
-	portMap := make(map[string]*system.PortInfo, len(data.Ports))
+	// Build maps for flexible port lookup by service name, port number, or port/protocol
+	portByService := make(map[string]*system.PortInfo, len(data.Ports))
+	portByNumber := make(map[uint16]*system.PortInfo, len(data.Ports))
+	portByNumberProto := make(map[string]*system.PortInfo, len(data.Ports))
 	for _, p := range data.Ports {
-		portMap[p.Service] = p
+		portByService[p.Service] = p
+		portByNumber[p.Port] = p
+		portByNumberProto[fmt.Sprintf("%d/%s", p.Port, p.Protocol)] = p
 	}
 
 	for _, alertData := range alerts {
@@ -31,7 +36,17 @@ func (am *AlertManager) HandlePortAlerts(systemRecord *core.Record, data *system
 			continue
 		}
 
-		port, exists := portMap[portItem]
+		// Try matching by service name, then port/protocol (e.g. "80/tcp"), then port number
+		var port *system.PortInfo
+		var exists bool
+		if port, exists = portByService[portItem]; !exists {
+			if port, exists = portByNumberProto[portItem]; !exists {
+				// Try parsing as port number
+				if portNum, err := strconv.ParseUint(portItem, 10, 16); err == nil {
+					port, exists = portByNumber[uint16(portNum)]
+				}
+			}
+		}
 		isOpen := exists && port.Status == "open"
 
 		am.handlePortStatusAlert(systemRecord, alertData, portItem, isOpen)

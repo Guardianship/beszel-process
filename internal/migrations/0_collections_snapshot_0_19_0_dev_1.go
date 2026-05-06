@@ -128,7 +128,8 @@ func init() {
 				"presentable": false,
 				"required": false,
 				"system": false,
-				"type": "text"
+				"type": "text",
+				"default": ""
 			},
 			{
 				"hidden": false,
@@ -152,7 +153,7 @@ func init() {
 			}
 		],
 		"indexes": [
-			"CREATE UNIQUE INDEX ` + "`" + `idx_MnhEt21L5r` + "`" + ` ON ` + "`" + `alerts` + "`" + ` (\n  ` + "`" + `user` + "`" + `,\n  ` + "`" + `system` + "`" + `,\n  ` + "`" + `name` + "`" + `\n)"
+			"CREATE UNIQUE INDEX ` + "`" + `idx_alerts_user_system_name_item` + "`" + ` ON ` + "`" + `alerts` + "`" + ` (\n  ` + "`" + `user` + "`" + `,\n  ` + "`" + `system` + "`" + `,\n  ` + "`" + `name` + "`" + `,\n  ` + "`" + `item` + "`" + `\n)"
 		],
 		"system": false
 	},

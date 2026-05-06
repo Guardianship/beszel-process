@@ -133,7 +133,16 @@ func (am *AlertManager) processPendingAlert(alertID string) {
 	if !ok || refreshedAlertData.Triggered {
 		return
 	}
-	if err := am.sendStatusAlert("down", info.systemName, refreshedAlertData); err != nil {
+	var err error
+	switch refreshedAlertData.Name {
+	case "Port":
+		err = am.sendPortAlert("closed", info.systemName, refreshedAlertData, refreshedAlertData.Item)
+	case "Process":
+		err = am.sendProcessAlert("down", info.systemName, refreshedAlertData, refreshedAlertData.Item)
+	default:
+		err = am.sendStatusAlert("down", info.systemName, refreshedAlertData)
+	}
+	if err != nil {
 		am.hub.Logger().Error("Failed to send alert", "err", err)
 	}
 }
