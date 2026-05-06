@@ -129,15 +129,15 @@ func DeleteUserAlerts(e *core.RequestEvent) error {
 				numDeleted++
 			} else {
 				// Delete ALL matching alerts for this system
-				params := dbx.Params{"system": systemId, "name": reqData.AlertName, "user": userID}
-				var expr dbx.Expression
-				if reqData.Item != "" {
-					params["item"] = reqData.Item
-					expr = dbx.NewExp("system={:system} && name={:name} && user={:user} && item={:item}", params)
-				} else {
-					expr = dbx.NewExp("system={:system} && name={:name} && user={:user}", params)
+				hashExp := dbx.HashExp{
+					"system": systemId,
+					"name":   reqData.AlertName,
+					"user":   userID,
 				}
-				records, err := txApp.FindAllRecords("alerts", expr)
+				if reqData.Item != "" {
+					hashExp["item"] = reqData.Item
+				}
+				records, err := txApp.FindAllRecords("alerts", hashExp)
 				if err != nil {
 					return err
 				}

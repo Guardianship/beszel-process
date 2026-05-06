@@ -12,8 +12,13 @@ func init() {
 			return err
 		}
 
-		// Replace the unique index with a non-unique index to allow
-		// multiple alerts with the same (user, system, name, item).
+		// Drop the old unique index if it exists, then create a non-unique index.
+		// This ensures the unique constraint is removed even if a previous migration
+		// created it and app.Save alone didn't replace it properly.
+		if _, err := app.DB().NewQuery("DROP INDEX IF EXISTS `idx_alerts_user_system_name_item`").Execute(); err != nil {
+			return err
+		}
+
 		alertsCollection.Indexes = []string{
 			"CREATE INDEX `idx_alerts_user_system_name_item` ON `alerts` (`user`, `system`, `name`, `item`)",
 		}

@@ -54,7 +54,7 @@ func init() {
 
 		// Always update the index to include item, even if fields were already present
 		alertsCollection.Indexes = []string{
-			"CREATE UNIQUE INDEX `idx_alerts_user_system_name_item` ON `alerts` (`user`, `system`, `name`, `item`)",
+			"CREATE INDEX `idx_alerts_user_system_name_item` ON `alerts` (`user`, `system`, `name`, `item`)",
 		}
 		return app.Save(alertsCollection)
 	}, func(app core.App) error {

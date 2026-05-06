@@ -259,11 +259,22 @@ func init() {
 			return err
 		}
 
-		// Find the "name" select field and add new values
+		// Find the "name" select field and add new values (skip if already present)
 		for _, field := range alertsCollection.Fields {
 			if field.GetName() == "name" {
 				if selectField, ok := field.(*core.SelectField); ok {
-					selectField.Values = append(selectField.Values, "Process", "ProcessCpu", "ProcessMem", "Port")
+					for _, v := range []string{"Process", "ProcessCpu", "ProcessMem", "Port"} {
+						alreadyExists := false
+						for _, existing := range selectField.Values {
+							if existing == v {
+								alreadyExists = true
+								break
+							}
+						}
+						if !alreadyExists {
+							selectField.Values = append(selectField.Values, v)
+						}
+					}
 				}
 				break
 			}
@@ -278,7 +289,7 @@ func init() {
 
 		// Update unique index to include item (user, system, name, item)
 		alertsCollection.Indexes = []string{
-			"CREATE UNIQUE INDEX `idx_alerts_user_system_name_item` ON `alerts` (`user`, `system`, `name`, `item`)",
+			"CREATE INDEX `idx_alerts_user_system_name_item` ON `alerts` (`user`, `system`, `name`, `item`)",
 		}
 
 		return app.Save(alertsCollection)

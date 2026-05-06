@@ -89,14 +89,6 @@ func TestUserAlertsApi(t *testing.T) {
 	}
 
 	scenarios := []beszelTests.ApiScenario{
-		// {
-		// 	Name:            "GET not implemented - returns index",
-		// 	Method:          http.MethodGet,
-		// 	URL:             "/api/beszel/user-alerts",
-		// 	ExpectedStatus:  200,
-		// 	ExpectedContent: []string{"<html ", "globalThis.BESZEL"},
-		// 	TestAppFactory:  testAppFactory,
-		// },
 		{
 			Name:            "POST no auth",
 			Method:          http.MethodPost,
@@ -154,17 +146,14 @@ func TestUserAlertsApi(t *testing.T) {
 			ExpectedContent: []string{"\"success\":true"},
 			TestAppFactory:  testAppFactory,
 			Body: jsonReader(map[string]any{
-				"name":      "CPU",
-				"value":     69,
-				"min":       9,
-				"systems":   []string{system1.Id, system2.Id},
-				"overwrite": false,
+				"name":    "CPU",
+				"value":   69,
+				"min":     9,
+				"systems": []string{system1.Id, system2.Id},
 			}),
 			AfterTestFunc: func(t testing.TB, app *pbTests.TestApp, res *http.Response) {
-				// check total alerts
 				alerts, _ := app.CountRecords("alerts")
 				assert.EqualValues(t, 2, alerts, "should have 2 alerts")
-				// check alert has correct values
 				matchingAlerts, _ := app.CountRecords("alerts", dbx.HashExp{"name": "CPU", "user": user1.Id, "system": system1.Id, "value": 69, "min": 9})
 				assert.EqualValues(t, 1, matchingAlerts, "should have 1 alert")
 			},
@@ -191,27 +180,26 @@ func TestUserAlertsApi(t *testing.T) {
 			},
 		},
 		{
-			Name:   "Overwrite: false, should not overwrite existing alert",
+			Name:   "POST without id always creates new alert (allows duplicates)",
 			Method: http.MethodPost,
 			URL:    "/api/beszel/user-alerts",
 			Headers: map[string]string{
 				"Authorization": user1Token,
 			},
 			ExpectedStatus:  200,
-			ExpectedContent: []string{"\"success\":true"},
+			ExpectedContent: []string{"\"success\":true", "\"duplicates\""},
 			TestAppFactory:  testAppFactory,
 			Body: jsonReader(map[string]any{
-				"name":      "CPU",
-				"value":     45,
-				"min":       5,
-				"systems":   []string{system1.Id},
-				"overwrite": false,
+				"name":    "CPU",
+				"value":   45,
+				"min":     5,
+				"systems": []string{system1.Id},
 			}),
 			BeforeTestFunc: func(t testing.TB, app *pbTests.TestApp, e *core.ServeEvent) {
 				beszelTests.ClearCollection(t, app, "alerts")
 				beszelTests.CreateRecord(app, "alerts", map[string]any{
 					"name":   "CPU",
-						"item":   "",
+					"item":   "",
 					"system": system1.Id,
 					"user":   user1.Id,
 					"value":  80,
@@ -220,44 +208,7 @@ func TestUserAlertsApi(t *testing.T) {
 			},
 			AfterTestFunc: func(t testing.TB, app *pbTests.TestApp, res *http.Response) {
 				alerts, _ := app.CountRecords("alerts")
-				assert.EqualValues(t, 1, alerts, "should have 1 alert")
-				alert, _ := app.FindFirstRecordByFilter("alerts", "name = 'CPU' && user = {:user}", dbx.Params{"user": user1.Id})
-				assert.EqualValues(t, 80, alert.Get("value"), "should have 80 as value")
-			},
-		},
-		{
-			Name:   "Overwrite: true, should overwrite existing alert",
-			Method: http.MethodPost,
-			URL:    "/api/beszel/user-alerts",
-			Headers: map[string]string{
-				"Authorization": user2Token,
-			},
-			ExpectedStatus:  200,
-			ExpectedContent: []string{"\"success\":true"},
-			TestAppFactory:  testAppFactory,
-			Body: jsonReader(map[string]any{
-				"name":      "CPU",
-				"value":     45,
-				"min":       5,
-				"systems":   []string{system2.Id},
-				"overwrite": true,
-			}),
-			BeforeTestFunc: func(t testing.TB, app *pbTests.TestApp, e *core.ServeEvent) {
-				beszelTests.ClearCollection(t, app, "alerts")
-				beszelTests.CreateRecord(app, "alerts", map[string]any{
-					"name":   "CPU",
-						"item":   "",
-					"system": system2.Id,
-					"user":   user2.Id,
-					"value":  80,
-					"min":    10,
-				})
-			},
-			AfterTestFunc: func(t testing.TB, app *pbTests.TestApp, res *http.Response) {
-				alerts, _ := app.CountRecords("alerts")
-				assert.EqualValues(t, 1, alerts, "should have 1 alert")
-				alert, _ := app.FindFirstRecordByFilter("alerts", "name = 'CPU' && user = {:user}", dbx.Params{"user": user2.Id})
-				assert.EqualValues(t, 45, alert.Get("value"), "should have 45 as value")
+				assert.EqualValues(t, 2, alerts, "should have 2 alerts (original + new duplicate)")
 			},
 		},
 		{
@@ -275,7 +226,7 @@ func TestUserAlertsApi(t *testing.T) {
 				beszelTests.ClearCollection(t, app, "alerts")
 				beszelTests.CreateRecord(app, "alerts", map[string]any{
 					"name":   "CPU",
-						"item":   "",
+					"item":   "",
 					"system": system1.Id,
 					"user":   user1.Id,
 					"value":  80,
@@ -288,7 +239,7 @@ func TestUserAlertsApi(t *testing.T) {
 			},
 		},
 		{
-			Name:   "DELETE alert",
+			Name:   "DELETE alert by name (deletes all matching)",
 			Method: http.MethodDelete,
 			URL:    "/api/beszel/user-alerts",
 			Headers: map[string]string{
@@ -299,13 +250,14 @@ func TestUserAlertsApi(t *testing.T) {
 			TestAppFactory:  testAppFactory,
 			Body: jsonReader(map[string]any{
 				"name":    "CPU",
+				"item":    "",
 				"systems": []string{system1.Id},
 			}),
 			BeforeTestFunc: func(t testing.TB, app *pbTests.TestApp, e *core.ServeEvent) {
 				beszelTests.ClearCollection(t, app, "alerts")
 				beszelTests.CreateRecord(app, "alerts", map[string]any{
 					"name":   "CPU",
-						"item":   "",
+					"item":   "",
 					"system": system1.Id,
 					"user":   user1.Id,
 					"value":  80,
@@ -329,6 +281,7 @@ func TestUserAlertsApi(t *testing.T) {
 			TestAppFactory:  testAppFactory,
 			Body: jsonReader(map[string]any{
 				"name":    "Memory",
+				"item":    "",
 				"systems": []string{system1.Id, system2.Id},
 			}),
 			BeforeTestFunc: func(t testing.TB, app *pbTests.TestApp, e *core.ServeEvent) {
@@ -364,6 +317,7 @@ func TestUserAlertsApi(t *testing.T) {
 			TestAppFactory:  testAppFactory,
 			Body: jsonReader(map[string]any{
 				"name":    "CPU",
+				"item":    "",
 				"systems": []string{system2.Id},
 			}),
 			BeforeTestFunc: func(t testing.TB, app *pbTests.TestApp, e *core.ServeEvent) {
@@ -380,10 +334,6 @@ func TestUserAlertsApi(t *testing.T) {
 				}
 				alerts, _ := app.CountRecords("alerts")
 				assert.EqualValues(t, 2, alerts, "should have 2 alerts")
-				user1AlertCount, _ := app.CountRecords("alerts", dbx.HashExp{"user": user1.Id})
-				assert.EqualValues(t, 1, user1AlertCount, "should have 1 alert")
-				user2AlertCount, _ := app.CountRecords("alerts", dbx.HashExp{"user": user2.Id})
-				assert.EqualValues(t, 1, user2AlertCount, "should have 1 alert")
 			},
 			AfterTestFunc: func(t testing.TB, app *pbTests.TestApp, res *http.Response) {
 				user1AlertCount, _ := app.CountRecords("alerts", dbx.HashExp{"user": user1.Id})
@@ -398,6 +348,98 @@ func TestUserAlertsApi(t *testing.T) {
 		scenario.Test(t)
 	}
 }
+
+func TestUserAlertsByIdApi(t *testing.T) {
+	hub, _ := beszelTests.NewTestHub(t.TempDir())
+	defer hub.Cleanup()
+
+	hub.StartHub()
+
+	user1, _ := beszelTests.CreateUser(hub, "alertbyid@example.com", "password")
+	user1Token, _ := user1.NewAuthToken()
+
+	system1, _ := beszelTests.CreateRecord(hub, "systems", map[string]any{
+		"name":  "system1",
+		"users": []string{user1.Id},
+		"host":  "127.0.0.1",
+	})
+
+	// Create alert records upfront so their IDs are available in scenario bodies
+	alertToUpdate, _ := beszelTests.CreateRecord(hub, "alerts", map[string]any{
+		"name":   "CPU",
+		"item":   "",
+		"system": system1.Id,
+		"user":   user1.Id,
+		"value":  80,
+		"min":    10,
+	})
+
+	alertToDelete, _ := beszelTests.CreateRecord(hub, "alerts", map[string]any{
+		"name":   "CPU",
+		"item":   "",
+		"system": system1.Id,
+		"user":   user1.Id,
+		"value":  90,
+		"min":    5,
+	})
+
+	testAppFactory := func(t testing.TB) *pbTests.TestApp {
+		return hub.TestApp
+	}
+
+	scenarios := []beszelTests.ApiScenario{
+		{
+			Name:   "POST with id updates existing alert",
+			Method: http.MethodPost,
+			URL:    "/api/beszel/user-alerts",
+			Headers: map[string]string{
+				"Authorization": user1Token,
+			},
+			Body: jsonReader(map[string]any{
+				"id":      alertToUpdate.Id,
+				"name":    "CPU",
+				"value":   45,
+				"min":     5,
+				"systems": []string{system1.Id},
+			}),
+			ExpectedStatus:  200,
+			ExpectedContent: []string{"\"success\":true"},
+			TestAppFactory:  testAppFactory,
+			AfterTestFunc: func(t testing.TB, app *pbTests.TestApp, res *http.Response) {
+				alerts, _ := app.CountRecords("alerts")
+				assert.EqualValues(t, 2, alerts, "should still have 2 alerts total (updated in place, not duplicated)")
+				alert, _ := app.FindRecordById("alerts", alertToUpdate.Id)
+				assert.EqualValues(t, 45, alert.Get("value"), "should have updated value to 45")
+			},
+		},
+		{
+			Name:   "DELETE by id deletes only the specific alert",
+			Method: http.MethodDelete,
+			URL:    "/api/beszel/user-alerts",
+			Headers: map[string]string{
+				"Authorization": user1Token,
+			},
+			Body: jsonReader(map[string]any{
+				"id":      alertToDelete.Id,
+				"name":    "CPU",
+				"item":    "",
+				"systems": []string{system1.Id},
+			}),
+			ExpectedStatus:  200,
+			ExpectedContent: []string{"\"count\":1", "\"success\":true"},
+			TestAppFactory:  testAppFactory,
+			AfterTestFunc: func(t testing.TB, app *pbTests.TestApp, res *http.Response) {
+				alerts, _ := app.CountRecords("alerts")
+				assert.EqualValues(t, 1, alerts, "should have 1 alert remaining (the other one)")
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		scenario.Test(t)
+	}
+}
+
 func TestSendTestNotification(t *testing.T) {
 	hub, user := beszelTests.GetHubWithUser(t)
 	defer hub.Cleanup()

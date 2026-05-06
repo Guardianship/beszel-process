@@ -38,7 +38,21 @@ const failedUpdateToast = (error: unknown) => {
 
 /** Create or update alerts for a given name and systems */
 const upsertAlerts = debounce(
-	async ({ id, name, item, value, min, systems }: { id?: string; name: string; item: string; value: number; min: number; systems: string[] }) => {
+	async ({
+		id,
+		name,
+		item,
+		value,
+		min,
+		systems,
+	}: {
+		id?: string
+		name: string
+		item: string
+		value: number
+		min: number
+		systems: string[]
+	}) => {
 		try {
 			const result = await pb.send<{ success: boolean; duplicates?: string[] }>(endpoint, {
 				method: "POST",
@@ -58,16 +72,19 @@ const upsertAlerts = debounce(
 )
 
 /** Delete alerts for a given name and systems */
-const deleteAlerts = debounce(async ({ id, name, item, systems }: { id?: string; name: string; item: string; systems: string[] }) => {
-	try {
-		await pb.send<{ success: boolean }>(endpoint, {
-			method: "DELETE",
-			body: { id, name, item, systems },
-		})
-	} catch (error) {
-		failedUpdateToast(error)
-	}
-}, alertDebounce)
+const deleteAlerts = debounce(
+	async ({ id, name, item, systems }: { id?: string; name: string; item: string; systems: string[] }) => {
+		try {
+			await pb.send<{ success: boolean }>(endpoint, {
+				method: "DELETE",
+				body: { id, name, item, systems },
+			})
+		} catch (error) {
+			failedUpdateToast(error)
+		}
+	},
+	alertDebounce
+)
 
 export const AlertDialogContent = memo(function AlertDialogContent({ system }: { system: SystemRecord }) {
 	const alerts = useStore($alerts)
@@ -188,25 +205,17 @@ export const AlertDialogContent = memo(function AlertDialogContent({ system }: {
 									<div key={name} className="rounded-lg border border-muted-foreground/15">
 										<div className="flex flex-row items-center justify-between gap-4 p-4 pb-2">
 											<p className="font-semibold flex gap-3 items-center">
-												{(() => { const I = info.icon; return <I className="h-4 w-4 opacity-85" /> })()}
+												{(() => {
+													const I = info.icon
+													return <I className="h-4 w-4 opacity-85" />
+												})()}
 												{info.name()}
 											</p>
 										</div>
 										{existingAlerts.map(({ key, alert }) => (
-											<AlertContent
-												key={key}
-												alertKey={name}
-												data={info}
-												alert={alert}
-												system={system}
-											/>
+											<AlertContent key={key} alertKey={name} data={info} alert={alert} system={system} />
 										))}
-										<AlertContent
-											key={name + "-new"}
-											alertKey={name}
-											data={info}
-											system={system}
-										/>
+										<AlertContent key={name + "-new"} alertKey={name} data={info} system={system} />
 									</div>
 								)
 							}
@@ -249,7 +258,7 @@ export const AlertDialogContent = memo(function AlertDialogContent({ system }: {
 										overwriteExisting={!!overwriteExisting}
 										initialAlertsState={alertsWhenGlobalSelected}
 									/>
-					)
+								)
 							}
 							return (
 								<AlertContent
@@ -310,7 +319,12 @@ export function AlertContent({
 		const allSystems = $systems.get()
 		const systemIds: string[] = []
 		for (const system of allSystems) {
-			if (overwriteExisting || !Array.from((initialAlertsState[system.id] ?? new Map()).values()).some((a) => a.name === alertKey && (item ? a.item === item : !a.item))) {
+			if (
+				overwriteExisting ||
+				!Array.from((initialAlertsState[system.id] ?? new Map()).values()).some(
+					(a) => a.name === alertKey && (item ? a.item === item : !a.item)
+				)
+			) {
 				systemIds.push(system.id)
 			}
 		}
@@ -324,7 +338,7 @@ export function AlertContent({
 				id: alert?.id,
 				name: alertKey,
 				item,
-				value,
+				value: singleDescription ? 0 : value,
 				min,
 				systems,
 			})
@@ -341,7 +355,7 @@ export function AlertContent({
 				<div className="grid gap-1 select-none">
 					<p className="font-semibold flex gap-3 items-center">
 						<Icon className="h-4 w-4 opacity-85" /> {alertData.name()}
-							{alertData.hasItem && item && <span className="text-sm font-normal text-muted-foreground">- {item}</span>}
+						{alertData.hasItem && item && <span className="text-sm font-normal text-muted-foreground">- {item}</span>}
 					</p>
 					{!checked && <span className="block text-sm text-muted-foreground">{alertData.desc()}</span>}
 					{!checked && alertData.hasItem && (
@@ -351,7 +365,12 @@ export function AlertContent({
 							onChange={(e) => setItem(e.target.value)}
 							placeholder={alertKey === "Port" ? "80/tcp" : "Process name"}
 							className="h-7 mt-1"
-							onKeyDown={(e) => { if (e.key === "Enter" && item.trim()) { setChecked(true); sendUpsert(min, value) } }}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" && item.trim()) {
+									setChecked(true)
+									sendUpsert(min, value)
+								}
+							}}
 						/>
 					)}
 				</div>
@@ -367,8 +386,8 @@ export function AlertContent({
 							deleteAlerts({ id: alert?.id, name: alertKey, item, systems: getSystemIds() })
 							if (overwriteExisting) {
 								for (const curAlerts of Object.values(initialAlertsState)) {
-								curAlerts.delete(alert?.id ?? "")
-							}
+									curAlerts.delete(alert?.id ?? "")
+								}
 							}
 						}
 					}}
@@ -382,11 +401,16 @@ export function AlertContent({
 								type="text"
 								value={item}
 								onChange={(e) => setItem(e.target.value)}
-								onBlur={() => { if (checked && item.trim()) sendUpsert(min, value) }}
+								onBlur={() => {
+									if (checked && item.trim()) sendUpsert(min, value)
+								}}
 								placeholder={alertKey === "Port" ? "80/tcp" : "Process name"}
 								className="h-8"
 							/>
 						</div>
+					)}
+					{singleDescription && (
+						<p className="col-span-full text-sm text-muted-foreground">{alertData.desc()}</p>
 					)}
 					<Suspense fallback={<div className="h-10" />}>
 						{!singleDescription && (

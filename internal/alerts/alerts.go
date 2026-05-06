@@ -105,8 +105,29 @@ func NewAlertManager(app hubLike) *AlertManager {
 	return am
 }
 
+// stateChangeAlertNames are alert types that monitor state changes (up/down, open/closed)
+// and don't use the "value" threshold field. Their value should always be 0.
+var stateChangeAlertNames = map[string]bool{
+	"Status":  true,
+	"Process": true,
+	"Port":    true,
+}
+
+// clearValueForStateChangeAlerts sets value to 0 for state-change alert types
+// that don't use a threshold. This ensures the value field is clean regardless
+// of how the record is created (API, Admin UI, etc.).
+func clearValueForStateChangeAlerts(e *core.RecordEvent) error {
+	record := e.Record
+	if stateChangeAlertNames[record.GetString("name")] {
+		record.Set("value", 0)
+	}
+	return e.Next()
+}
+
 // Bind events to the alerts collection lifecycle
 func (am *AlertManager) bindEvents() {
+	am.hub.OnRecordCreate("alerts").BindFunc(clearValueForStateChangeAlerts)
+	am.hub.OnRecordUpdate("alerts").BindFunc(clearValueForStateChangeAlerts)
 	am.hub.OnRecordAfterUpdateSuccess("alerts").BindFunc(updateHistoryOnAlertUpdate)
 	am.hub.OnRecordAfterDeleteSuccess("alerts").BindFunc(resolveHistoryOnAlertDelete)
 	am.hub.OnRecordAfterUpdateSuccess("smart_devices").BindFunc(am.handleSmartDeviceAlert)

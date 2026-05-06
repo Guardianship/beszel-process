@@ -19,11 +19,11 @@ func init() {
 			return err
 		}
 
-		// Unconditionally set the correct unique index that includes item.
+		// Set the correct non-unique index that includes item.
 		// This fixes installations where migration 2 skipped the index update
 		// because the fields already existed (changed=false).
 		alertsCollection.Indexes = []string{
-			"CREATE UNIQUE INDEX `idx_alerts_user_system_name_item` ON `alerts` (`user`, `system`, `name`, `item`)",
+			"CREATE INDEX `idx_alerts_user_system_name_item` ON `alerts` (`user`, `system`, `name`, `item`)",
 		}
 		return app.Save(alertsCollection)
 	}, func(app core.App) error {
