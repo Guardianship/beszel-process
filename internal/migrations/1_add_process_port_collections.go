@@ -131,12 +131,12 @@ func init() {
 				"CREATE INDEX ` + "`" + `idx_proc_system` + "`" + ` ON ` + "`" + `processes` + "`" + ` (` + "`" + `system` + "`" + `)",
 				"CREATE INDEX ` + "`" + `idx_proc_updated` + "`" + ` ON ` + "`" + `processes` + "`" + ` (` + "`" + `updated` + "`" + `)"
 			],
-			"listRule": null,
+			"listRule": "@request.auth.id != \"\" && system.users.id ?= @request.auth.id",
 			"name": "processes",
 			"system": false,
 			"type": "base",
 			"updateRule": null,
-			"viewRule": null
+			"viewRule": "@request.auth.id != \"\" && system.users.id ?= @request.auth.id"
 		},
 		{
 			"createRule": null,
@@ -239,12 +239,12 @@ func init() {
 				"CREATE INDEX ` + "`" + `idx_port_system` + "`" + ` ON ` + "`" + `monitored_ports` + "`" + ` (` + "`" + `system` + "`" + `)",
 				"CREATE INDEX ` + "`" + `idx_port_updated` + "`" + ` ON ` + "`" + `monitored_ports` + "`" + ` (` + "`" + `updated` + "`" + `)"
 			],
-			"listRule": null,
+			"listRule": "@request.auth.id != \"\" && system.users.id ?= @request.auth.id",
 			"name": "monitored_ports",
 			"system": false,
 			"type": "base",
 			"updateRule": null,
-			"viewRule": null
+			"viewRule": "@request.auth.id != \"\" && system.users.id ?= @request.auth.id"
 		}
 	]`
 
