@@ -71,6 +71,14 @@ func (am *AlertManager) handleProcessStatusAlert(systemRecord *core.Record, aler
 
 // schedulePendingProcessAlert sets up a timer to send a "down" alert after the specified delay.
 func (am *AlertManager) schedulePendingProcessAlert(systemName string, alertData CachedAlertData, processName string, delay time.Duration) bool {
+	// Check if this alert is already triggered to prevent re-scheduling after the
+	// pending entry was consumed by processPendingAlert. This breaks the cycle:
+	// processPendingAlert deletes entry → next cycle creates new entry → timer fires →
+	// Triggered=true → return early → delete → repeat.
+	if refreshed, ok := am.alertsCache.Refresh(alertData); ok && refreshed.Triggered {
+		return false
+	}
+
 	alert := &alertInfo{
 		systemName: systemName,
 		alertData:  alertData,
@@ -79,6 +87,9 @@ func (am *AlertManager) schedulePendingProcessAlert(systemName string, alertData
 
 	storedAlert, loaded := am.pendingAlerts.LoadOrStore(alertData.Id, alert)
 	if loaded {
+		// Update existing entry's alertData so it uses fresh data when the timer fires.
+		stored := storedAlert.(*alertInfo)
+		stored.alertData = alertData
 		return false
 	}
 

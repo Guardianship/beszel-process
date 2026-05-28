@@ -6,22 +6,71 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/henrygd/beszel/agent/utils"
 	"github.com/henrygd/beszel/internal/entities/system"
 )
 
-// collectProcessInfo collects process information on Unix systems using pgrep and /proc.
+// collectProcessInfo collects process information on Unix systems.
+// Supports three lookup strategies:
+//  1. If name is a numeric PID, look up directly via /proc
+//  2. Try pgrep -x (exact comm name match)
+//  3. Fallback to pgrep -f (match against full command line)
 func collectProcessInfo(name string) *system.ProcessInfo {
-	cmd := exec.Command("pgrep", "-x", name)
-	output, err := cmd.Output()
-	if err != nil || len(output) == 0 {
+	var pidLine string
+
+	if isNumeric(name) {
+		// Strategy 1: PID lookup — verify process exists via /proc/<pid>/comm
+		if comm := utils.ReadStringFile("/proc/" + name + "/comm"); comm != "" {
+			pidLine = name
+		}
+	}
+
+	if pidLine == "" {
+		// Strategy 2: exact comm name match
+		pidLine = pgrepFirstPid("-x", name)
+	}
+
+	if pidLine == "" {
+		// Strategy 3: full command line match
+		pidLine = pgrepFirstPid("-f", name)
+	}
+
+	if pidLine == "" {
 		return nil
 	}
 
+	return buildProcessInfo(name, pidLine)
+}
+
+// isNumeric returns true if s consists only of digits.
+func isNumeric(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
+}
+
+// pgrepFirstPid runs pgrep with the given flag and returns the first PID line, or empty string.
+func pgrepFirstPid(flag, name string) string {
+	cmd := exec.Command("pgrep", flag, name)
+	output, err := cmd.Output()
+	if err != nil || len(output) == 0 {
+		return ""
+	}
 	pidStr := strings.TrimSpace(string(output))
 	pidLines := strings.Split(pidStr, "\n")
-	pidLine := pidLines[0]
+	return pidLines[0]
+}
+
+// buildProcessInfo creates a ProcessInfo from a PID string, reading /proc for memory data.
+func buildProcessInfo(name, pidLine string) *system.ProcessInfo {
 	pid, err := strconv.ParseUint(pidLine, 10, 32)
 	if err != nil {
 		return nil
@@ -31,19 +80,6 @@ func collectProcessInfo(name string) *system.ProcessInfo {
 		Name:   name,
 		Pid:    uint32(pid),
 		Status: "running",
-	}
-
-	// Try to read from /proc on Linux
-	if statStr := utils.ReadStringFile("/proc/" + pidLine + "/stat"); statStr != "" {
-		lastParen := strings.LastIndex(statStr, ")")
-		if lastParen >= 0 {
-			fields := strings.Split(statStr[lastParen+2:], " ")
-			if len(fields) > 19 {
-				if starttime, err := strconv.ParseUint(fields[19], 10, 64); err == nil {
-					_ = starttime
-				}
-			}
-		}
 	}
 
 	// Read memory from /proc/pid/status (VmRSS in kB)

@@ -223,6 +223,80 @@ func TestProcessAlertNoAlertRecord(t *testing.T) {
 	assert.Equal(t, 0, am.GetPendingAlertsCount(), "No pending alert when no alert record exists")
 }
 
+func TestProcessAlertDownUpRepeatCycle(t *testing.T) {
+	hub, user := beszelTests.GetHubWithUser(t)
+	defer hub.Cleanup()
+
+	systems, err := beszelTests.CreateSystems(hub, 1, user.Id, "up")
+	require.NoError(t, err)
+	systemRecord := systems[0]
+
+	// Create a Process alert with item = "nginx"
+	alertRecord, err := beszelTests.CreateRecord(hub, "alerts", map[string]any{
+		"name":   "Process",
+		"system": systemRecord.Id,
+		"user":   user.Id,
+		"item":   "nginx",
+		"min":    1,
+	})
+	require.NoError(t, err)
+
+	am := alerts.NewTestAlertManagerWithoutWorker(hub)
+	require.NoError(t, am.GetSystemAlertsCache().PopulateFromDB(true))
+
+	dataRunning := &system.CombinedData{
+		Processes: []*system.ProcessInfo{
+			{Name: "nginx", Pid: 1234, Status: "running"},
+		},
+	}
+	dataDown := &system.CombinedData{
+		Processes: []*system.ProcessInfo{},
+	}
+
+	// --- Cycle 1: Process down → alert fires ---
+	require.NoError(t, am.HandleProcessAlerts(systemRecord, dataDown))
+	assert.Equal(t, 1, am.GetPendingAlertsCount(), "Cycle 1: pending alert scheduled")
+
+	am.ForceExpirePendingAlerts()
+	processed, err := am.ProcessPendingAlerts()
+	require.NoError(t, err)
+	assert.Len(t, processed, 1, "Cycle 1: one alert processed")
+
+	alertFresh, err := hub.FindRecordById("alerts", alertRecord.Id)
+	require.NoError(t, err)
+	assert.True(t, alertFresh.GetBool("triggered"), "Cycle 1: alert should be triggered")
+
+	// --- Recovery: Process comes back up ---
+	require.NoError(t, am.HandleProcessAlerts(systemRecord, dataRunning))
+	alertFresh, err = hub.FindRecordById("alerts", alertRecord.Id)
+	require.NoError(t, err)
+	assert.False(t, alertFresh.GetBool("triggered"), "Recovery: alert should be resolved")
+	assert.Equal(t, 0, am.GetPendingAlertsCount(), "Recovery: no pending alerts")
+
+	// --- Cycle 2: Process down AGAIN → alert should fire again ---
+	require.NoError(t, am.HandleProcessAlerts(systemRecord, dataDown))
+	assert.Equal(t, 1, am.GetPendingAlertsCount(), "Cycle 2: pending alert scheduled")
+
+	am.ForceExpirePendingAlerts()
+	processed, err = am.ProcessPendingAlerts()
+	require.NoError(t, err)
+	assert.Len(t, processed, 1, "Cycle 2: one alert processed")
+
+	alertFresh, err = hub.FindRecordById("alerts", alertRecord.Id)
+	require.NoError(t, err)
+	assert.True(t, alertFresh.GetBool("triggered"), "Cycle 2: alert should be triggered again")
+
+	// --- Cycle 3: Process stays down → should NOT re-fire (already triggered) ---
+	require.NoError(t, am.HandleProcessAlerts(systemRecord, dataDown))
+	assert.Equal(t, 0, am.GetPendingAlertsCount(), "Cycle 3: no new pending alert when already triggered")
+
+	// --- Cycle 4: Recovery again ---
+	require.NoError(t, am.HandleProcessAlerts(systemRecord, dataRunning))
+	alertFresh, err = hub.FindRecordById("alerts", alertRecord.Id)
+	require.NoError(t, err)
+	assert.False(t, alertFresh.GetBool("triggered"), "Cycle 4: alert should be resolved again")
+}
+
 func TestProcessAlertEmptyItem(t *testing.T) {
 	hub, user := beszelTests.GetHubWithUser(t)
 	defer hub.Cleanup()

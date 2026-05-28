@@ -80,6 +80,12 @@ func (am *AlertManager) handlePortStatusAlert(systemRecord *core.Record, alertDa
 
 // schedulePendingPortAlert sets up a timer to send a "closed" alert after the specified delay.
 func (am *AlertManager) schedulePendingPortAlert(systemName string, alertData CachedAlertData, portItem string, delay time.Duration) bool {
+	// Check if this alert is already triggered to prevent re-scheduling after the
+	// pending entry was consumed by processPendingAlert.
+	if refreshed, ok := am.alertsCache.Refresh(alertData); ok && refreshed.Triggered {
+		return false
+	}
+
 	alert := &alertInfo{
 		systemName: systemName,
 		alertData:  alertData,
@@ -88,6 +94,9 @@ func (am *AlertManager) schedulePendingPortAlert(systemName string, alertData Ca
 
 	storedAlert, loaded := am.pendingAlerts.LoadOrStore(alertData.Id, alert)
 	if loaded {
+		// Update existing entry's alertData so it uses fresh data when the timer fires.
+		stored := storedAlert.(*alertInfo)
+		stored.alertData = alertData
 		return false
 	}
 

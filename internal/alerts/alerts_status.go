@@ -60,6 +60,12 @@ func (am *AlertManager) handleSystemDown(systemName string, alerts []CachedAlert
 // schedulePendingStatusAlert sets up a timer to send a "down" alert after the specified delay if the system is still down.
 // It returns true if the alert was scheduled, or false if an alert was already pending for the given alert record.
 func (am *AlertManager) schedulePendingStatusAlert(systemName string, alertData CachedAlertData, delay time.Duration) bool {
+	// Check if this alert is already triggered to prevent re-scheduling after the
+	// pending entry was consumed by processPendingAlert.
+	if refreshed, ok := am.alertsCache.Refresh(alertData); ok && refreshed.Triggered {
+		return false
+	}
+
 	alert := &alertInfo{
 		systemName: systemName,
 		alertData:  alertData,
@@ -68,6 +74,9 @@ func (am *AlertManager) schedulePendingStatusAlert(systemName string, alertData 
 
 	storedAlert, loaded := am.pendingAlerts.LoadOrStore(alertData.Id, alert)
 	if loaded {
+		// Update existing entry's alertData so it uses fresh data when the timer fires.
+		stored := storedAlert.(*alertInfo)
+		stored.alertData = alertData
 		return false
 	}
 
