@@ -332,7 +332,7 @@ func createProcessRecords(app core.App, data []*system.ProcessInfo, systemId str
 	for i, proc := range data {
 		suffix := fmt.Sprintf("%d", i)
 		valueStrings = append(valueStrings, fmt.Sprintf("({:id%[1]s}, {:system}, {:name%[1]s}, {:pid%[1]s}, {:cpu%[1]s}, {:memory%[1]s}, {:status%[1]s}, {:uptime%[1]s}, {:updated})", suffix))
-		params["id"+suffix] = makeStableHashId(systemId, "proc", proc.Name)
+		params["id"+suffix] = makeStableHashId(systemId, "proc", proc.Name, fmt.Sprint(proc.Pid))
 		params["name"+suffix] = proc.Name
 		params["pid"+suffix] = proc.Pid
 		params["cpu"+suffix] = proc.Cpu
