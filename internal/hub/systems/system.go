@@ -321,6 +321,10 @@ func createSystemdStatsRecords(app core.App, data []*systemd.Service, systemId s
 }
 
 func createProcessRecords(app core.App, data []*system.ProcessInfo, systemId string) error {
+	// Delete old process records for this system so the table reflects current state only.
+	if _, err := app.DB().NewQuery("DELETE FROM processes WHERE system={:system}").Bind(dbx.Params{"system": systemId}).Execute(); err != nil {
+		return err
+	}
 	if len(data) == 0 {
 		return nil
 	}
@@ -349,6 +353,10 @@ func createProcessRecords(app core.App, data []*system.ProcessInfo, systemId str
 }
 
 func createPortRecords(app core.App, data []*system.PortInfo, systemId string) error {
+	// Delete old port records for this system so the table reflects current state only.
+	if _, err := app.DB().NewQuery("DELETE FROM monitored_ports WHERE system={:system}").Bind(dbx.Params{"system": systemId}).Execute(); err != nil {
+		return err
+	}
 	if len(data) == 0 {
 		return nil
 	}
