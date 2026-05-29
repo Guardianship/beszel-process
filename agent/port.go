@@ -26,13 +26,11 @@ type portCheck struct {
 // newPortManager creates a new portManager from the PORT_CHECKS env var.
 // Format: "80,443/tcp,8080/tcp:myapp" (port[/protocol][:label])
 // Use PORT_CHECKS=* to monitor all listening ports.
+// If PORT_CHECKS is not set, defaults to monitoring all listening ports.
 func newPortManager() *portManager {
 	checks := getPortChecks()
-	if len(checks) == 0 {
-		return nil
-	}
 	pm := &portManager{portChecks: checks}
-	if len(checks) == 1 && checks[0].Service == "*" {
+	if len(checks) == 0 || (len(checks) == 1 && checks[0].Service == "*") {
 		pm.monitorAll = true
 		slog.Info("Port monitoring all listening ports")
 	} else {

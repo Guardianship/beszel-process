@@ -16,15 +16,13 @@ type processManager struct {
 
 // newProcessManager creates a new processManager from the PROCESS_NAMES env var.
 // Use PROCESS_NAMES=* to monitor all running processes.
+// If PROCESS_NAMES is not set, defaults to monitoring top 50 processes by memory.
 func newProcessManager() *processManager {
 	names := getProcessNames()
-	if len(names) == 0 {
-		return nil
-	}
 	pm := &processManager{processNames: names}
-	if len(names) == 1 && names[0] == "*" {
+	if len(names) == 0 || (len(names) == 1 && names[0] == "*") {
 		pm.monitorAll = true
-		slog.Info("Process monitoring all running processes")
+		slog.Info("Process monitoring top 50 by memory")
 	} else {
 		slog.Info("Process monitoring", "names", names)
 	}

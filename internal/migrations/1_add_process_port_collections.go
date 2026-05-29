@@ -287,7 +287,8 @@ func init() {
 		}
 		alertsCollection.Fields.Add(itemField)
 
-		// Update unique index to include item (user, system, name, item)
+		// Drop old unique index if it exists, then set new non-unique index
+		app.DB().NewQuery("DROP INDEX IF EXISTS `idx_MnhEt21L5r`").Execute()
 		alertsCollection.Indexes = []string{
 			"CREATE INDEX `idx_alerts_user_system_name_item` ON `alerts` (`user`, `system`, `name`, `item`)",
 		}

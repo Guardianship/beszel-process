@@ -3,8 +3,10 @@
 package agent
 
 import (
+	"encoding/csv"
 	"fmt"
 	"os/exec"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -44,18 +46,18 @@ func tasklistByFilter(filter, displayName string) *system.ProcessInfo {
 		return nil
 	}
 
-	for line := range strings.SplitSeq(string(output), "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" || !strings.Contains(line, ",") {
-			continue
-		}
-		fields := strings.Split(line, ",")
+	reader := csv.NewReader(strings.NewReader(string(output)))
+	records, err := reader.ReadAll()
+	if err != nil || len(records) == 0 {
+		return nil
+	}
+
+	for _, fields := range records {
 		if len(fields) < 5 {
 			continue
 		}
 
-		pidStr := strings.Trim(fields[1], "\"")
-		pid, err := strconv.ParseUint(pidStr, 10, 32)
+		pid, err := strconv.ParseUint(fields[1], 10, 32)
 		if err != nil {
 			continue
 		}
@@ -80,20 +82,20 @@ func collectAllProcesses() []*system.ProcessInfo {
 		return nil
 	}
 
+	reader := csv.NewReader(strings.NewReader(string(output)))
+	records, err := reader.ReadAll()
+	if err != nil || len(records) == 0 {
+		return nil
+	}
+
 	var result []*system.ProcessInfo
-	for line := range strings.SplitSeq(string(output), "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" || !strings.Contains(line, ",") {
-			continue
-		}
-		fields := strings.Split(line, ",")
+	for _, fields := range records {
 		if len(fields) < 5 {
 			continue
 		}
 
-		name := strings.Trim(fields[0], "\"")
-		pidStr := strings.Trim(fields[1], "\"")
-		pid, err := strconv.ParseUint(pidStr, 10, 32)
+		name := fields[0]
+		pid, err := strconv.ParseUint(fields[1], 10, 32)
 		if err != nil {
 			continue
 		}
@@ -107,14 +109,30 @@ func collectAllProcesses() []*system.ProcessInfo {
 			Mem:    memMB,
 		})
 	}
+
+	// Sort by memory descending and limit to top 50
+	slices.SortFunc(result, func(a, b *system.ProcessInfo) int {
+		if b.Mem > a.Mem {
+			return 1
+		}
+		if b.Mem < a.Mem {
+			return -1
+		}
+		return 0
+	})
+	if len(result) > 50 {
+		result = result[:50]
+	}
+
 	return result
 }
 
 // parseTasklistMem parses the memory column from tasklist CSV output (e.g. "134,752 K") to MB.
 func parseTasklistMem(memField string) float64 {
-	memStr := strings.Trim(memField, "\" ")
+	memStr := strings.TrimSpace(memField)
 	memStr = strings.TrimSuffix(memStr, " K")
 	memStr = strings.TrimSuffix(memStr, " k")
+	memStr = strings.ReplaceAll(memStr, ",", "")
 	if v, err := strconv.ParseFloat(memStr, 64); err == nil {
 		return v / 1024.0
 	}

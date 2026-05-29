@@ -5,6 +5,7 @@ package agent
 import (
 	"os"
 	"os/exec"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode"
@@ -120,5 +121,20 @@ func collectAllProcesses() []*system.ProcessInfo {
 			result = append(result, info)
 		}
 	}
+
+	// Sort by memory descending and limit to top 50
+	slices.SortFunc(result, func(a, b *system.ProcessInfo) int {
+		if b.Mem > a.Mem {
+			return 1
+		}
+		if b.Mem < a.Mem {
+			return -1
+		}
+		return 0
+	})
+	if len(result) > 50 {
+		result = result[:50]
+	}
+
 	return result
 }

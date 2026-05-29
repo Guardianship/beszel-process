@@ -101,29 +101,100 @@ func (am *AlertManager) schedulePendingProcessAlert(systemName string, alertData
 }
 
 // handleProcessThresholdAlert handles CPU/memory threshold alerts for a process.
+// Uses a pending timer: when the value exceeds the threshold, a timer is started
+// for min minutes. If the value drops below the threshold before the timer fires,
+// the timer is cancelled. The alert is only sent when the timer fires.
 func (am *AlertManager) handleProcessThresholdAlert(systemRecord *core.Record, alertData CachedAlertData, processName, metricName string, value float64) {
 	threshold := alertData.Value
 	triggered := alertData.Triggered
+	aboveThreshold := value > threshold
 
 	// Skip if no state change
-	if (!triggered && value <= threshold) || (triggered && value > threshold) {
+	if (!triggered && !aboveThreshold) || (triggered && aboveThreshold) {
 		return
 	}
 
 	systemName := systemRecord.GetString("name")
-	newTriggered := value > threshold
 
-	if err := am.setAlertTriggered(alertData, newTriggered); err != nil {
+	if aboveThreshold {
+		// Value just crossed above threshold — schedule pending alert
+		min := max(1, int(alertData.Min))
+		am.schedulePendingThresholdAlert(systemName, alertData, processName, metricName, value, threshold, time.Duration(min)*time.Minute)
+	} else {
+		// Value dropped below threshold — cancel pending alert if any
+		if am.cancelPendingAlert(alertData.Id) {
+			return
+		}
+		// If previously triggered, send recovery alert immediately
+		if !triggered {
+			return
+		}
+		if err := am.setAlertTriggered(alertData, false); err != nil {
+			return
+		}
+		unit := "%"
+		subject := fmt.Sprintf("%s process %s %s below threshold", systemName, processName, metricName)
+		body := fmt.Sprintf("Process %s %s is now %.2f%s (threshold: %.0f%s).", processName, metricName, value, unit, threshold, unit)
+		am.SendAlert(AlertMessageData{
+			UserID:   alertData.UserID,
+			SystemID: alertData.SystemID,
+			Title:    subject,
+			Message:  body,
+			Link:     am.hub.MakeLink("system", alertData.SystemID),
+			LinkText: "View " + systemName,
+		})
+	}
+}
+
+// schedulePendingThresholdAlert sets up a timer to send a threshold alert after the specified delay.
+func (am *AlertManager) schedulePendingThresholdAlert(systemName string, alertData CachedAlertData, processName, metricName string, value, threshold float64, delay time.Duration) {
+	// Check if already triggered to prevent re-scheduling
+	if refreshed, ok := am.alertsCache.Refresh(alertData); ok && refreshed.Triggered {
 		return
 	}
 
-	var subject string
-	unit := "%"
-	if newTriggered {
-		subject = fmt.Sprintf("%s process %s %s above threshold", systemName, processName, metricName)
-	} else {
-		subject = fmt.Sprintf("%s process %s %s below threshold", systemName, processName, metricName)
+	alert := &alertInfo{
+		systemName: systemName,
+		alertData:  alertData,
+		expireTime: time.Now().Add(delay),
 	}
+
+	storedAlert, loaded := am.pendingAlerts.LoadOrStore(alertData.Id, alert)
+	if loaded {
+		stored := storedAlert.(*alertInfo)
+		stored.alertData = alertData
+		return
+	}
+
+	stored := storedAlert.(*alertInfo)
+	stored.timer = time.AfterFunc(time.Until(stored.expireTime), func() {
+		am.processPendingThresholdAlert(alertData.Id, processName, metricName, value, threshold)
+	})
+}
+
+// processPendingThresholdAlert sends the threshold alert after the timer fires.
+func (am *AlertManager) processPendingThresholdAlert(alertId string, processName, metricName string, value, threshold float64) {
+	raw, ok := am.pendingAlerts.LoadAndDelete(alertId)
+	if !ok {
+		return
+	}
+	info := raw.(*alertInfo)
+	alertData := info.alertData
+
+	// Re-check: only send if still triggered
+	if refreshed, ok := am.alertsCache.Refresh(alertData); ok {
+		alertData = refreshed
+	}
+	if alertData.Triggered {
+		return
+	}
+
+	if err := am.setAlertTriggered(alertData, true); err != nil {
+		return
+	}
+
+	unit := "%"
+	subject := fmt.Sprintf("%s process %s %s above threshold", info.systemName, processName, metricName)
 	body := fmt.Sprintf("Process %s %s averaged %.2f%s (threshold: %.0f%s).", processName, metricName, value, unit, threshold, unit)
 
 	am.SendAlert(AlertMessageData{
@@ -132,7 +203,7 @@ func (am *AlertManager) handleProcessThresholdAlert(systemRecord *core.Record, a
 		Title:    subject,
 		Message:  body,
 		Link:     am.hub.MakeLink("system", alertData.SystemID),
-		LinkText: "View " + systemName,
+		LinkText: "View " + info.systemName,
 	})
 }
 
