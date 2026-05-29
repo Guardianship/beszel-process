@@ -3,6 +3,7 @@
 package agent
 
 import (
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -21,19 +22,16 @@ func collectProcessInfo(name string) *system.ProcessInfo {
 	var pidLine string
 
 	if isNumeric(name) {
-		// Strategy 1: PID lookup — verify process exists via /proc/<pid>/comm
 		if comm := utils.ReadStringFile("/proc/" + name + "/comm"); comm != "" {
 			pidLine = name
 		}
 	}
 
 	if pidLine == "" {
-		// Strategy 2: exact comm name match
 		pidLine = pgrepFirstPid("-x", name)
 	}
 
 	if pidLine == "" {
-		// Strategy 3: full command line match
 		pidLine = pgrepFirstPid("-f", name)
 	}
 
@@ -82,14 +80,13 @@ func buildProcessInfo(name, pidLine string) *system.ProcessInfo {
 		Status: "running",
 	}
 
-	// Read memory from /proc/pid/status (VmRSS in kB)
 	if statusStr := utils.ReadStringFile("/proc/" + pidLine + "/status"); statusStr != "" {
 		for line := range strings.SplitSeq(statusStr, "\n") {
 			if strings.HasPrefix(line, "VmRSS:") {
 				fields := strings.Fields(line)
 				if len(fields) >= 2 {
 					if rssKB, err := strconv.ParseFloat(fields[1], 64); err == nil {
-						info.Mem = rssKB / 1024.0 // KB to MB
+						info.Mem = rssKB / 1024.0
 					}
 				}
 				break
@@ -98,4 +95,30 @@ func buildProcessInfo(name, pidLine string) *system.ProcessInfo {
 	}
 
 	return info
+}
+
+// collectAllProcesses returns all running processes on Unix by scanning /proc.
+func collectAllProcesses() []*system.ProcessInfo {
+	entries, err := os.ReadDir("/proc")
+	if err != nil {
+		return nil
+	}
+
+	var result []*system.ProcessInfo
+	for _, entry := range entries {
+		if !entry.IsDir() || !isNumeric(entry.Name()) {
+			continue
+		}
+		pidLine := entry.Name()
+		comm := utils.ReadStringFile("/proc/" + pidLine + "/comm")
+		if comm == "" {
+			continue
+		}
+		comm = strings.TrimSpace(comm)
+		info := buildProcessInfo(comm, pidLine)
+		if info != nil {
+			result = append(result, info)
+		}
+	}
+	return result
 }

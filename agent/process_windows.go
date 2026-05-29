@@ -18,18 +18,15 @@ import (
 //  3. If name doesn't end with .exe, retry with .exe appended
 func collectProcessInfo(name string) *system.ProcessInfo {
 	if isNumeric(name) {
-		// Strategy 1: PID lookup
 		if info := tasklistByFilter(fmt.Sprintf("PID eq %s", name), name); info != nil {
 			return info
 		}
 	}
 
-	// Strategy 2: exact image name match
 	if info := tasklistByFilter(fmt.Sprintf("IMAGENAME eq %s", name), name); info != nil {
 		return info
 	}
 
-	// Strategy 3: auto-append .exe if not present
 	if !strings.HasSuffix(strings.ToLower(name), ".exe") {
 		if info := tasklistByFilter(fmt.Sprintf("IMAGENAME eq %s.exe", name), name); info != nil {
 			return info
@@ -47,14 +44,9 @@ func tasklistByFilter(filter, displayName string) *system.ProcessInfo {
 		return nil
 	}
 
-	lines := strings.SplitSeq(string(output), "\n")
-	for line := range lines {
+	for line := range strings.SplitSeq(string(output), "\n") {
 		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		// tasklist returns an info message (not CSV) when no results match
-		if !strings.Contains(line, ",") {
+		if line == "" || !strings.Contains(line, ",") {
 			continue
 		}
 		fields := strings.Split(line, ",")
@@ -68,13 +60,7 @@ func tasklistByFilter(filter, displayName string) *system.ProcessInfo {
 			continue
 		}
 
-		memStr := strings.Trim(fields[4], "\" ")
-		memStr = strings.TrimSuffix(memStr, " K")
-		memStr = strings.TrimSuffix(memStr, " k")
-		var memMB float64
-		if v, err := strconv.ParseFloat(memStr, 64); err == nil {
-			memMB = v / 1024.0 // K to MB
-		}
+		memMB := parseTasklistMem(fields[4])
 
 		return &system.ProcessInfo{
 			Name:   displayName,
@@ -84,6 +70,55 @@ func tasklistByFilter(filter, displayName string) *system.ProcessInfo {
 		}
 	}
 	return nil
+}
+
+// collectAllProcesses returns all running processes on Windows using tasklist.
+func collectAllProcesses() []*system.ProcessInfo {
+	cmd := exec.Command("tasklist", "/FO", "CSV", "/NH")
+	output, err := cmd.Output()
+	if err != nil || len(output) == 0 {
+		return nil
+	}
+
+	var result []*system.ProcessInfo
+	for line := range strings.SplitSeq(string(output), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || !strings.Contains(line, ",") {
+			continue
+		}
+		fields := strings.Split(line, ",")
+		if len(fields) < 5 {
+			continue
+		}
+
+		name := strings.Trim(fields[0], "\"")
+		pidStr := strings.Trim(fields[1], "\"")
+		pid, err := strconv.ParseUint(pidStr, 10, 32)
+		if err != nil {
+			continue
+		}
+
+		memMB := parseTasklistMem(fields[4])
+
+		result = append(result, &system.ProcessInfo{
+			Name:   name,
+			Pid:    uint32(pid),
+			Status: "running",
+			Mem:    memMB,
+		})
+	}
+	return result
+}
+
+// parseTasklistMem parses the memory column from tasklist CSV output (e.g. "134,752 K") to MB.
+func parseTasklistMem(memField string) float64 {
+	memStr := strings.Trim(memField, "\" ")
+	memStr = strings.TrimSuffix(memStr, " K")
+	memStr = strings.TrimSuffix(memStr, " k")
+	if v, err := strconv.ParseFloat(memStr, 64); err == nil {
+		return v / 1024.0
+	}
+	return 0
 }
 
 // isNumeric returns true if s consists only of digits.

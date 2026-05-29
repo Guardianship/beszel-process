@@ -11,16 +11,24 @@ import (
 // processManager collects stats for monitored processes.
 type processManager struct {
 	processNames []string
+	monitorAll   bool
 }
 
 // newProcessManager creates a new processManager from the PROCESS_NAMES env var.
+// Use PROCESS_NAMES=* to monitor all running processes.
 func newProcessManager() *processManager {
 	names := getProcessNames()
 	if len(names) == 0 {
 		return nil
 	}
-	slog.Info("Process monitoring", "names", names)
-	return &processManager{processNames: names}
+	pm := &processManager{processNames: names}
+	if len(names) == 1 && names[0] == "*" {
+		pm.monitorAll = true
+		slog.Info("Process monitoring all running processes")
+	} else {
+		slog.Info("Process monitoring", "names", names)
+	}
+	return pm
 }
 
 // getProcessNames reads the PROCESS_NAMES env var (comma-separated).
@@ -39,6 +47,9 @@ func getProcessNames() []string {
 
 // getProcessStats collects stats for each monitored process.
 func (pm *processManager) getProcessStats() []*system.ProcessInfo {
+	if pm.monitorAll {
+		return collectAllProcesses()
+	}
 	result := make([]*system.ProcessInfo, 0, len(pm.processNames))
 	for _, name := range pm.processNames {
 		info := collectProcessInfo(name)

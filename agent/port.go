@@ -14,6 +14,7 @@ import (
 // portManager monitors the status of network ports.
 type portManager struct {
 	portChecks []portCheck
+	monitorAll bool
 }
 
 type portCheck struct {
@@ -24,13 +25,20 @@ type portCheck struct {
 
 // newPortManager creates a new portManager from the PORT_CHECKS env var.
 // Format: "80,443/tcp,8080/tcp:myapp" (port[/protocol][:label])
+// Use PORT_CHECKS=* to monitor all listening ports.
 func newPortManager() *portManager {
 	checks := getPortChecks()
 	if len(checks) == 0 {
 		return nil
 	}
-	slog.Info("Port monitoring", "count", len(checks))
-	return &portManager{portChecks: checks}
+	pm := &portManager{portChecks: checks}
+	if len(checks) == 1 && checks[0].Service == "*" {
+		pm.monitorAll = true
+		slog.Info("Port monitoring all listening ports")
+	} else {
+		slog.Info("Port monitoring", "count", len(checks))
+	}
+	return pm
 }
 
 // getPortChecks parses the PORT_CHECKS env var.
@@ -38,6 +46,12 @@ func getPortChecks() []portCheck {
 	envVal, _ := utils.GetEnv("PORT_CHECKS")
 	if envVal == "" {
 		return nil
+	}
+
+	// Handle wildcard: PORT_CHECKS=*
+	trimmed := strings.TrimSpace(envVal)
+	if trimmed == "*" {
+		return []portCheck{{Service: "*"}}
 	}
 
 	var checks []portCheck
@@ -83,6 +97,9 @@ func getPortChecks() []portCheck {
 
 // getPortStats checks the status of each monitored port.
 func (pm *portManager) getPortStats() []*system.PortInfo {
+	if pm.monitorAll {
+		return collectAllPorts()
+	}
 	result := make([]*system.PortInfo, 0, len(pm.portChecks))
 	for _, pc := range pm.portChecks {
 		status := checkPortStatus(pc.Port, pc.Protocol)
