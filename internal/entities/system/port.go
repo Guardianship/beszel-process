@@ -6,4 +6,5 @@ type PortInfo struct {
 	Protocol string `json:"t" cbor:"1,keyasint"` // "tcp" or "udp"
 	Status   string `json:"s" cbor:"2,keyasint"` // "open" or "closed"
 	Service  string `json:"n" cbor:"3,keyasint"` // service name or label
+	Process  string `json:"pr,omitempty" cbor:"4,keyasint,omitempty"` // process name
 }

@@ -2,7 +2,7 @@ import type { Column, ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { cn, hourWithSeconds } from "@/lib/utils"
 import type { PortRecord } from "@/types"
-import { ActivityIcon, ArrowUpDownIcon, ClockIcon, EthernetPortIcon } from "lucide-react"
+import { ActivityIcon, ArrowUpDownIcon, ClockIcon, EthernetPortIcon, TerminalSquareIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { t } from "@lingui/core/macro"
 
@@ -45,6 +45,17 @@ export const portTableCols: ColumnDef<PortRecord>[] = [
 					{isOpen ? t`Open` : t`Closed`}
 				</Badge>
 			)
+		},
+	},
+	{
+		id: "process",
+		sortingFn: (a, b) => (a.original.process || "").localeCompare(b.original.process || ""),
+		accessorFn: (record) => record.process,
+		header: ({ column }) => <HeaderButton column={column} name={t`Process`} Icon={TerminalSquareIcon} />,
+		cell: ({ getValue }) => {
+			const val = getValue() as string
+			if (!val) return <span className="ms-1.5 text-muted-foreground">-</span>
+			return <span className="ms-1.5 xl:w-40 block truncate">{val}</span>
 		},
 	},
 	{

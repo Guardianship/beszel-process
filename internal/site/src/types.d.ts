@@ -441,6 +441,7 @@ export interface PortRecord extends RecordModel {
 	protocol: string
 	status: string
 	service: string
+	process: string
 	updated: string
 }
 

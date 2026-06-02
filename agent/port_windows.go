@@ -3,6 +3,7 @@
 package agent
 
 import (
+	"encoding/csv"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -19,10 +20,14 @@ func collectAllPorts() []*system.PortInfo {
 		return nil
 	}
 
+	// Build PID -> process name map
+	pidMap := buildPidProcessMap()
+
 	seen := make(map[string]bool)
 	var result []*system.PortInfo
 
-	for line := range strings.SplitSeq(string(output), "\n") {
+	utf8Output := gbkToUTF8(output)
+	for line := range strings.SplitSeq(utf8Output, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
@@ -40,6 +45,7 @@ func collectAllPorts() []*system.PortInfo {
 
 		localAddr := fields[1]
 		protocol := "tcp"
+		pidFieldIdx := 4
 		if strings.HasPrefix(strings.ToLower(fields[0]), "udp") {
 			protocol = "udp"
 			// UDP has no state column, fields shift
@@ -47,6 +53,7 @@ func collectAllPorts() []*system.PortInfo {
 				continue
 			}
 			localAddr = fields[1]
+			pidFieldIdx = 3
 		}
 
 		// Extract port from address (e.g. "0.0.0.0:80" or "[::]:443")
@@ -65,14 +72,60 @@ func collectAllPorts() []*system.PortInfo {
 		}
 		seen[key] = true
 
+		// Get process name from PID
+		processName := ""
+		if pidFieldIdx < len(fields) {
+			pid := strings.TrimSpace(fields[pidFieldIdx])
+			if name, ok := pidMap[pid]; ok {
+				processName = name
+			}
+		}
+
+		// Use process name as service label, fallback to port/protocol
+		service := key
+		if processName != "" {
+			service = processName
+		}
+
 		result = append(result, &system.PortInfo{
 			Port:     uint16(port),
 			Protocol: protocol,
 			Status:   "open",
-			Service:  key,
+			Service:  service,
+			Process:  processName,
 		})
 	}
 	return result
+}
+
+// buildPidProcessMap builds a map of PID -> process name using tasklist.
+func buildPidProcessMap() map[string]string {
+	cmd := exec.Command("tasklist", "/FO", "CSV", "/NH")
+	output, err := cmd.Output()
+	if err != nil || len(output) == 0 {
+		return nil
+	}
+
+	utf8Output := gbkToUTF8(output)
+	reader := csv.NewReader(strings.NewReader(utf8Output))
+	records, err := reader.ReadAll()
+	if err != nil {
+		return nil
+	}
+
+	pidMap := make(map[string]string, len(records))
+	for _, fields := range records {
+		if len(fields) < 2 {
+			continue
+		}
+		name := fields[0]
+		// Use friendly name if available
+		if friendly, ok := processFriendlyNames[name]; ok {
+			name = friendly
+		}
+		pidMap[fields[1]] = name
+	}
+	return pidMap
 }
 
 // extractPort extracts the port number from an address string like "0.0.0.0:80" or "[::]:443".

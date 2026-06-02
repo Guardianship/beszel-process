@@ -43,7 +43,7 @@ export default function PortTable({ systemId }: { systemId?: string }) {
 		function fetchData(systemId?: string) {
 			pb.collection<PortRecord>("monitored_ports")
 				.getList(0, 2000, {
-					fields: "port,protocol,status,service,updated",
+					fields: "port,protocol,status,service,process,updated",
 					filter: systemId ? pb.filter("system={:system}", { system: systemId }) : undefined,
 				})
 				.then(

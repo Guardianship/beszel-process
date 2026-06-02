@@ -367,15 +367,16 @@ func createPortRecords(app core.App, data []*system.PortInfo, systemId string) e
 	valueStrings := make([]string, 0, len(data))
 	for i, port := range data {
 		suffix := fmt.Sprintf("%d", i)
-		valueStrings = append(valueStrings, fmt.Sprintf("({:id%[1]s}, {:system}, {:port%[1]s}, {:protocol%[1]s}, {:status%[1]s}, {:service%[1]s}, {:updated})", suffix))
+		valueStrings = append(valueStrings, fmt.Sprintf("({:id%[1]s}, {:system}, {:port%[1]s}, {:protocol%[1]s}, {:status%[1]s}, {:service%[1]s}, {:process%[1]s}, {:updated})", suffix))
 		params["id"+suffix] = makeStableHashId(systemId, "port", fmt.Sprintf("%d/%s", port.Port, port.Protocol))
 		params["port"+suffix] = port.Port
 		params["protocol"+suffix] = port.Protocol
 		params["status"+suffix] = port.Status
 		params["service"+suffix] = port.Service
+		params["process"+suffix] = port.Process
 	}
 	queryString := fmt.Sprintf(
-		"INSERT INTO monitored_ports (id, system, port, protocol, status, service, updated) VALUES %s ON CONFLICT(id) DO UPDATE SET system = excluded.system, port = excluded.port, protocol = excluded.protocol, status = excluded.status, service = excluded.service, updated = excluded.updated",
+		"INSERT INTO monitored_ports (id, system, port, protocol, status, service, process, updated) VALUES %s ON CONFLICT(id) DO UPDATE SET system = excluded.system, port = excluded.port, protocol = excluded.protocol, status = excluded.status, service = excluded.service, process = excluded.process, updated = excluded.updated",
 		strings.Join(valueStrings, ","),
 	)
 	_, err := app.DB().NewQuery(queryString).Bind(params).Execute()
