@@ -115,14 +115,17 @@ func (am *AlertManager) sendPortAlert(status, systemName string, alertData Cache
 	}
 
 	var emoji string
+	var statusCn string
 	if status == "open" {
 		emoji = "✅"
+		statusCn = "开放"
 	} else {
 		emoji = "\U0001F534"
+		statusCn = "关闭"
 	}
 
-	title := fmt.Sprintf("Port %s is %s on %s %v", portItem, status, systemName, emoji)
-	message := fmt.Sprintf("Port %s is %s on %s", portItem, status, systemName)
+	title := fmt.Sprintf("端口 %s 状态: %s（系统: %s）%v", portItem, statusCn, systemName, emoji)
+	message := fmt.Sprintf("端口 %s 状态: %s（系统: %s）", portItem, statusCn, systemName)
 
 	return am.SendAlert(AlertMessageData{
 		UserID:   alertData.UserID,

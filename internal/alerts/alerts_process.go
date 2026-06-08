@@ -21,6 +21,13 @@ func (am *AlertManager) HandleProcessAlerts(systemRecord *core.Record, data *sys
 		processMap[p.Name] = p
 	}
 
+	// Get system total memory for percentage calculation
+	var totalMemoryBytes uint64
+	systemDetails, _ := am.hub.FindFirstRecordByFilter("system_details", "system={:system}", map[string]any{"system": systemRecord.Id})
+	if systemDetails != nil {
+		totalMemoryBytes = uint64(systemDetails.GetInt("memory"))
+	}
+
 	for _, alertData := range alerts {
 		processName := alertData.Item
 		if processName == "" {
@@ -38,7 +45,13 @@ func (am *AlertManager) HandleProcessAlerts(systemRecord *core.Record, data *sys
 			}
 		case "ProcessMem":
 			if exists && proc != nil {
-				am.handleProcessThresholdAlert(systemRecord, alertData, processName, "Memory", proc.Mem)
+				// Convert memory from MB to percentage of total system memory
+				memPercent := proc.Mem
+				if totalMemoryBytes > 0 {
+					memBytes := proc.Mem * 1024 * 1024 // MB to bytes
+					memPercent = (memBytes / float64(totalMemoryBytes)) * 100
+				}
+				am.handleProcessThresholdAlert(systemRecord, alertData, processName, "Memory", memPercent)
 			}
 		}
 	}
@@ -133,8 +146,8 @@ func (am *AlertManager) handleProcessThresholdAlert(systemRecord *core.Record, a
 			return
 		}
 		unit := "%"
-		subject := fmt.Sprintf("%s process %s %s below threshold", systemName, processName, metricName)
-		body := fmt.Sprintf("Process %s %s is now %.2f%s (threshold: %.0f%s).", processName, metricName, value, unit, threshold, unit)
+		subject := fmt.Sprintf("%s 进程 %s %s 低于阈值", systemName, processName, metricName)
+		body := fmt.Sprintf("进程 %s %s 当前值 %.2f%s（阈值: %.0f%s）。", processName, metricName, value, unit, threshold, unit)
 		am.SendAlert(AlertMessageData{
 			UserID:   alertData.UserID,
 			SystemID: alertData.SystemID,
@@ -194,8 +207,8 @@ func (am *AlertManager) processPendingThresholdAlert(alertId string, processName
 	}
 
 	unit := "%"
-	subject := fmt.Sprintf("%s process %s %s above threshold", info.systemName, processName, metricName)
-	body := fmt.Sprintf("Process %s %s averaged %.2f%s (threshold: %.0f%s).", processName, metricName, value, unit, threshold, unit)
+	subject := fmt.Sprintf("%s 进程 %s %s 超过阈值", info.systemName, processName, metricName)
+	body := fmt.Sprintf("进程 %s %s 平均值 %.2f%s（阈值: %.0f%s）。", processName, metricName, value, unit, threshold, unit)
 
 	am.SendAlert(AlertMessageData{
 		UserID:   alertData.UserID,
@@ -215,14 +228,17 @@ func (am *AlertManager) sendProcessAlert(status, systemName string, alertData Ca
 	}
 
 	var emoji string
+	var statusCn string
 	if status == "up" {
 		emoji = "✅"
+		statusCn = "在线"
 	} else {
 		emoji = "\U0001F534"
+		statusCn = "离线"
 	}
 
-	title := fmt.Sprintf("Process %s is %s on %s %v", processName, status, systemName, emoji)
-	message := fmt.Sprintf("Process %s is %s on %s", processName, status, systemName)
+	title := fmt.Sprintf("进程 %s 状态: %s（系统: %s）%v", processName, statusCn, systemName, emoji)
+	message := fmt.Sprintf("进程 %s 状态: %s（系统: %s）", processName, statusCn, systemName)
 
 	return am.SendAlert(AlertMessageData{
 		UserID:   alertData.UserID,

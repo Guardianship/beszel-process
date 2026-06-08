@@ -1,6 +1,7 @@
-/** biome-ignore-all lint/security/noDangerouslySetInnerHtml: html comes directly from docker via agent */
+/** biome-ignore-all lint/security/noDangerouslySetInnerHtml: html is sanitized with DOMPurify */
 import { t } from "@lingui/core/macro"
 import { Trans } from "@lingui/react/macro"
+import DOMPurify from "dompurify"
 import {
 	type ColumnFiltersState,
 	flexRender,
@@ -281,7 +282,10 @@ async function getLogsHtml(container: ContainerRecord): Promise<string> {
 				container: container.id,
 			}),
 		])
-		return logsHtml.logs ? highlighter.codeToHtml(logsHtml.logs, { lang: "log", theme: syntaxTheme }) : t`No results.`
+		const html = logsHtml.logs
+			? highlighter.codeToHtml(logsHtml.logs, { lang: "log", theme: syntaxTheme })
+			: t`No results.`
+		return DOMPurify.sanitize(html)
 	} catch (error) {
 		console.error(error)
 		return ""
@@ -300,7 +304,8 @@ async function getInfoHtml(container: ContainerRecord): Promise<string> {
 		try {
 			info = JSON.stringify(JSON.parse(info), null, 2)
 		} catch (_) {}
-		return info ? highlighter.codeToHtml(info, { lang: "json", theme: syntaxTheme }) : t`No results.`
+		const html = info ? highlighter.codeToHtml(info, { lang: "json", theme: syntaxTheme }) : t`No results.`
+		return DOMPurify.sanitize(html)
 	} catch (error) {
 		console.error(error)
 		return ""

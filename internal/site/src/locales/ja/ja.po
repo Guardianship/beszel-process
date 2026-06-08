@@ -105,8 +105,8 @@ msgid "Active"
 msgstr "アクティブ"
 
 #: src/components/active-alerts.tsx
-msgid "Active Alerts"
-msgstr "アクティブなアラート"
+#~ msgid "Active Alerts"
+#~ msgstr "アクティブなアラート"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Active state"
@@ -162,6 +162,10 @@ msgstr "アラート履歴"
 msgid "Alerts"
 msgstr "アラート"
 
+#: src/components/active-alerts.tsx
+msgid "All Configured Alerts"
+msgstr ""
+
 #: src/components/command-palette.tsx
 #: src/components/containers-table/containers-table.tsx
 #: src/components/navbar.tsx
@@ -178,6 +182,10 @@ msgstr "すべてのコンテナ"
 #: src/components/systems-table/systems-table.tsx
 msgid "All Systems"
 msgstr "すべてのシステム"
+
+#: src/components/alerts/alerts-sheet.tsx
+msgid "An alert with the same configuration already exists. A new alert has been created anyway."
+msgstr "同じ設定のアラートが既に存在します。新しいアラートが作成されました。"
 
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Are you sure you want to delete {name}?"
@@ -267,12 +275,9 @@ msgstr "非アクティブになった"
 msgid "Before"
 msgstr "前"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "過去{2, plural, one {# 分} other {# 分}}で{0}{1}を下回っています"
+#~ msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "過去{2, plural, one {# 分} other {# 分}}で{0}{1}を下回っています"
 
 #: src/components/login/auth-form.tsx
 msgid "Beszel supports OpenID Connect and many OAuth2 authentication providers."
@@ -424,8 +429,8 @@ msgid "Conflicts"
 msgstr "競合"
 
 #: src/components/active-alerts.tsx
-msgid "Connection is down"
-msgstr "接続が切断されました"
+#~ msgid "Connection is down"
+#~ msgstr "接続が切断されました"
 
 #: src/components/routes/system.tsx
 msgid "Containers"
@@ -664,6 +669,10 @@ msgstr "停止 ({downSystemsLength})"
 msgid "Download"
 msgstr "ダウンロード"
 
+#: src/components/alerts/alerts-sheet.tsx
+msgid "Duplicate alert detected"
+msgstr "重複するアラートを検出しました"
+
 #: src/components/alerts-history-columns.tsx
 msgid "Duration"
 msgstr "期間"
@@ -692,6 +701,10 @@ msgstr "メール通知"
 #: src/lib/i18n.ts
 msgid "Empty"
 msgstr "空"
+
+#: src/components/active-alerts.tsx
+msgid "Enabled"
+msgstr ""
 
 #: src/components/routes/settings/quiet-hours.tsx
 #: src/components/routes/settings/quiet-hours.tsx
@@ -739,12 +752,9 @@ msgstr "エラー"
 msgid "Example:"
 msgstr "例:"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "過去{2, plural, one {# 分} other {# 分}}で{0}{1}を超えています"
+#~ msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "過去{2, plural, one {# 分} other {# 分}}で{0}{1}を超えています"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Exec main PID"
@@ -1340,6 +1350,7 @@ msgstr "記録された時点での正確な利用"
 msgid "Preferred Language"
 msgstr "優先言語"
 
+#: src/components/routes/system/port-table-columns.tsx
 #: src/lib/alerts.ts
 msgid "Process"
 msgstr ""
@@ -1786,6 +1797,10 @@ msgstr ""
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Total: {0}"
 msgstr "合計: {0}"
+
+#: src/components/active-alerts.tsx
+msgid "Triggered"
+msgstr ""
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Triggered by"

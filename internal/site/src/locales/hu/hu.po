@@ -105,8 +105,8 @@ msgid "Active"
 msgstr "Aktív"
 
 #: src/components/active-alerts.tsx
-msgid "Active Alerts"
-msgstr "Aktív riasztások"
+#~ msgid "Active Alerts"
+#~ msgstr "Aktív riasztások"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Active state"
@@ -162,6 +162,10 @@ msgstr "Riasztási előzmények"
 msgid "Alerts"
 msgstr "Riasztások"
 
+#: src/components/active-alerts.tsx
+msgid "All Configured Alerts"
+msgstr ""
+
 #: src/components/command-palette.tsx
 #: src/components/containers-table/containers-table.tsx
 #: src/components/navbar.tsx
@@ -178,6 +182,10 @@ msgstr "Minden konténer"
 #: src/components/systems-table/systems-table.tsx
 msgid "All Systems"
 msgstr "Minden rendszer"
+
+#: src/components/alerts/alerts-sheet.tsx
+msgid "An alert with the same configuration already exists. A new alert has been created anyway."
+msgstr "Már létezik riasztás ugyanezzel a konfigurációval. Ennek ellenére új riasztás jött létre."
 
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Are you sure you want to delete {name}?"
@@ -267,12 +275,9 @@ msgstr "Inaktívvá vált"
 msgid "Before"
 msgstr "Előtte"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "{0}{1} alatt az elmúlt {2, plural, one {# percben} other {# percben}}"
+#~ msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "{0}{1} alatt az elmúlt {2, plural, one {# percben} other {# percben}}"
 
 #: src/components/login/auth-form.tsx
 msgid "Beszel supports OpenID Connect and many OAuth2 authentication providers."
@@ -424,8 +429,8 @@ msgid "Conflicts"
 msgstr "Konfliktusok"
 
 #: src/components/active-alerts.tsx
-msgid "Connection is down"
-msgstr "Kapcsolat megszakadt"
+#~ msgid "Connection is down"
+#~ msgstr "Kapcsolat megszakadt"
 
 #: src/components/routes/system.tsx
 msgid "Containers"
@@ -664,6 +669,10 @@ msgstr "Offline ({downSystemsLength})"
 msgid "Download"
 msgstr "Letöltés"
 
+#: src/components/alerts/alerts-sheet.tsx
+msgid "Duplicate alert detected"
+msgstr "Duplikált riasztás észlelve"
+
 #: src/components/alerts-history-columns.tsx
 msgid "Duration"
 msgstr "Időtartam"
@@ -692,6 +701,10 @@ msgstr "E-mail értesítések"
 #: src/lib/i18n.ts
 msgid "Empty"
 msgstr "Üres"
+
+#: src/components/active-alerts.tsx
+msgid "Enabled"
+msgstr ""
 
 #: src/components/routes/settings/quiet-hours.tsx
 #: src/components/routes/settings/quiet-hours.tsx
@@ -739,12 +752,9 @@ msgstr "Hiba"
 msgid "Example:"
 msgstr "Példa:"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "Túllépi a {0}{1} értéket az elmúlt {2, plural, one {# percben} other {# percben}}"
+#~ msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "Túllépi a {0}{1} értéket az elmúlt {2, plural, one {# percben} other {# percben}}"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Exec main PID"
@@ -1340,6 +1350,7 @@ msgstr "Pontos kihasználás a rögzített időpontban"
 msgid "Preferred Language"
 msgstr "Preferált nyelv"
 
+#: src/components/routes/system/port-table-columns.tsx
 #: src/lib/alerts.ts
 msgid "Process"
 msgstr ""
@@ -1786,6 +1797,10 @@ msgstr ""
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Total: {0}"
 msgstr "Összesen: {0}"
+
+#: src/components/active-alerts.tsx
+msgid "Triggered"
+msgstr ""
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Triggered by"

@@ -105,8 +105,8 @@ msgid "Active"
 msgstr "Aktiv"
 
 #: src/components/active-alerts.tsx
-msgid "Active Alerts"
-msgstr "Aktive Alarmer"
+#~ msgid "Active Alerts"
+#~ msgstr "Aktive Alarmer"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Active state"
@@ -162,6 +162,10 @@ msgstr "Advarselshistorik"
 msgid "Alerts"
 msgstr "Alarmer"
 
+#: src/components/active-alerts.tsx
+msgid "All Configured Alerts"
+msgstr ""
+
 #: src/components/command-palette.tsx
 #: src/components/containers-table/containers-table.tsx
 #: src/components/navbar.tsx
@@ -178,6 +182,10 @@ msgstr "Alle containere"
 #: src/components/systems-table/systems-table.tsx
 msgid "All Systems"
 msgstr "Alle systemer"
+
+#: src/components/alerts/alerts-sheet.tsx
+msgid "An alert with the same configuration already exists. A new alert has been created anyway."
+msgstr "En alarm med den samme konfiguration eksisterer alligevel. En ny alarm er alligevel blevet oprettet."
 
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Are you sure you want to delete {name}?"
@@ -267,12 +275,9 @@ msgstr "Blev inaktiv"
 msgid "Before"
 msgstr "Før"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "Under {0}{1} i sidste {2, plural, one {# minut} other {# minutter}}"
+#~ msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "Under {0}{1} i sidste {2, plural, one {# minut} other {# minutter}}"
 
 #: src/components/login/auth-form.tsx
 msgid "Beszel supports OpenID Connect and many OAuth2 authentication providers."
@@ -424,8 +429,8 @@ msgid "Conflicts"
 msgstr "Konflikter"
 
 #: src/components/active-alerts.tsx
-msgid "Connection is down"
-msgstr "Forbindelsen er nede"
+#~ msgid "Connection is down"
+#~ msgstr "Forbindelsen er nede"
 
 #: src/components/routes/system.tsx
 msgid "Containers"
@@ -664,6 +669,10 @@ msgstr "Nede ({downSystemsLength})"
 msgid "Download"
 msgstr "Hent ned"
 
+#: src/components/alerts/alerts-sheet.tsx
+msgid "Duplicate alert detected"
+msgstr "Duplikeret alarm opdaget"
+
 #: src/components/alerts-history-columns.tsx
 msgid "Duration"
 msgstr "Varighed"
@@ -692,6 +701,10 @@ msgstr "Email-notifikationer"
 #: src/lib/i18n.ts
 msgid "Empty"
 msgstr "Tom"
+
+#: src/components/active-alerts.tsx
+msgid "Enabled"
+msgstr ""
 
 #: src/components/routes/settings/quiet-hours.tsx
 #: src/components/routes/settings/quiet-hours.tsx
@@ -739,12 +752,9 @@ msgstr "Fejl"
 msgid "Example:"
 msgstr "Eksempel:"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "Overskrider {0}{1} i sidste {2, plural, one {# minut} other {# minutter}}"
+#~ msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "Overskrider {0}{1} i sidste {2, plural, one {# minut} other {# minutter}}"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Exec main PID"
@@ -1340,6 +1350,7 @@ msgstr "Præcis udnyttelse på det registrerede tidspunkt"
 msgid "Preferred Language"
 msgstr "Foretrukket sprog"
 
+#: src/components/routes/system/port-table-columns.tsx
 #: src/lib/alerts.ts
 msgid "Process"
 msgstr ""
@@ -1786,6 +1797,10 @@ msgstr ""
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Total: {0}"
 msgstr "I alt: {0}"
+
+#: src/components/active-alerts.tsx
+msgid "Triggered"
+msgstr ""
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Triggered by"

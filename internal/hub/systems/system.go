@@ -448,7 +448,23 @@ func (sys *System) HasUser(app core.App, user *core.Record) bool {
 	if err != nil || recordData.Users == "" {
 		return false
 	}
-	return strings.Contains(recordData.Users, user.Id)
+	// Parse JSON array and check for exact match to prevent substring bypass
+	var users []string
+	if err := json.Unmarshal([]byte(recordData.Users), &users); err != nil {
+		// Fallback: try parsing as comma-separated string (legacy format)
+		for _, u := range strings.Split(recordData.Users, ",") {
+			if strings.TrimSpace(u) == user.Id {
+				return true
+			}
+		}
+		return false
+	}
+	for _, u := range users {
+		if u == user.Id {
+			return true
+		}
+	}
+	return false
 }
 
 // setDown marks a system as down in the database.

@@ -110,9 +110,15 @@ func (client *WebSocketClient) getOptions() *gws.ClientOption {
 		os.Setenv("ALL_PROXY", val)
 	}
 
+	// TLS certificate verification: enabled by default, disabled only with INSECURE_TLS=true
+	insecureTLS := os.Getenv("INSECURE_TLS") == "true"
+	if insecureTLS {
+		slog.Warn("TLS certificate verification disabled (INSECURE_TLS=true)")
+	}
+
 	client.options = &gws.ClientOption{
 		Addr:      client.hubURL.String(),
-		TlsConfig: &tls.Config{InsecureSkipVerify: true},
+		TlsConfig: &tls.Config{InsecureSkipVerify: insecureTLS},
 		RequestHeader: http.Header{
 			"User-Agent": []string{getUserAgent()},
 			"X-Token":    []string{client.token},

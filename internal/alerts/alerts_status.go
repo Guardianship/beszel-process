@@ -2,7 +2,6 @@ package alerts
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -165,14 +164,17 @@ func (am *AlertManager) sendStatusAlert(alertStatus string, systemName string, a
 	}
 
 	var emoji string
+	var statusCn string
 	if alertStatus == "up" {
 		emoji = "\u2705" // Green checkmark emoji
+		statusCn = "\u5728\u7ebf"
 	} else {
 		emoji = "\U0001F534" // Red alert emoji
+		statusCn = "\u79bb\u7ebf"
 	}
 
-	title := fmt.Sprintf("Connection to %s is %s %v", systemName, alertStatus, emoji)
-	message := strings.TrimSuffix(title, emoji)
+	title := fmt.Sprintf("\u4e0e %s \u7684\u8fde\u63a5\u72b6\u6001: %s %v", systemName, statusCn, emoji)
+	message := fmt.Sprintf("\u4e0e %s \u7684\u8fde\u63a5\u72b6\u6001: %s", systemName, statusCn)
 
 	// Get system ID for the link
 	systemID := alertData.SystemID

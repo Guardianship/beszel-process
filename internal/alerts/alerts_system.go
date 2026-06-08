@@ -320,25 +320,22 @@ func (am *AlertManager) sendSystemAlert(alert SystemAlertData) {
 	lowAlert := isLowAlert(alert.name)
 	if alert.triggered {
 		if lowAlert {
-			subject = fmt.Sprintf("%s %s below threshold", systemName, titleAlertName)
+			subject = fmt.Sprintf("%s %s 低于阈值", systemName, titleAlertName)
 		} else {
-			subject = fmt.Sprintf("%s %s above threshold", systemName, titleAlertName)
+			subject = fmt.Sprintf("%s %s 超过阈值", systemName, titleAlertName)
 		}
 	} else {
 		if lowAlert {
-			subject = fmt.Sprintf("%s %s above threshold", systemName, titleAlertName)
+			subject = fmt.Sprintf("%s %s 超过阈值", systemName, titleAlertName)
 		} else {
-			subject = fmt.Sprintf("%s %s below threshold", systemName, titleAlertName)
+			subject = fmt.Sprintf("%s %s 低于阈值", systemName, titleAlertName)
 		}
 	}
-	minutesLabel := "minute"
-	if alert.min > 1 {
-		minutesLabel += "s"
-	}
+	minutesLabel := "分钟"
 	if alert.descriptor == "" {
 		alert.descriptor = alert.name
 	}
-	body := fmt.Sprintf("%s averaged %.2f%s for the previous %v %s.", alert.descriptor, alert.val, alert.unit, alert.min, minutesLabel)
+	body := fmt.Sprintf("%s 在过去 %v %s 内平均值为 %.2f%s。", alert.descriptor, alert.min, minutesLabel, alert.val, alert.unit)
 
 	if err := am.setAlertTriggered(alert.alertData, alert.triggered); err != nil {
 		// app.Logger().Error("failed to save alert record", "err", err)

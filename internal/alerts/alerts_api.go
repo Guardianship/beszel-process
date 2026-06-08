@@ -3,6 +3,7 @@ package alerts
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -169,7 +170,8 @@ func (am *AlertManager) SendTestNotification(e *core.RequestEvent) error {
 		return e.BadRequestError("URL is required", err)
 	}
 	// Only allow admins to send test notifications to internal URLs
-	if !e.Auth.IsSuperuser() && e.Auth.GetString("role") != "admin" {
+	isAdmin := e.Auth.IsSuperuser() || e.Auth.GetString("role") == "admin"
+	if !isAdmin {
 		internalURL, err := isInternalURL(data.URL)
 		if err != nil {
 			return e.BadRequestError(err.Error(), nil)
@@ -178,11 +180,47 @@ func (am *AlertManager) SendTestNotification(e *core.RequestEvent) error {
 			return e.ForbiddenError("Only admins can send to internal destinations", nil)
 		}
 	}
-	err = am.SendShoutrrrAlert(data.URL, "Test Alert", "This is a notification from Beszel.", am.hub.Settings().Meta.AppURL, "View Beszel")
+	err = am.sendTestNotificationSafe(data.URL, isAdmin)
 	if err != nil {
 		return e.JSON(200, map[string]string{"err": err.Error()})
 	}
 	return e.JSON(200, map[string]bool{"err": false})
+}
+
+// sendTestNotificationSafe sends a test notification with SSRF protection for non-admin users
+func (am *AlertManager) sendTestNotificationSafe(notificationURL string, isAdmin bool) error {
+	if isAdmin {
+		// Admins can send to any URL without SSRF protection
+		return am.SendShoutrrrAlert(notificationURL, "Test Alert", "This is a notification from Beszel.", am.hub.Settings().Meta.AppURL, "View Beszel")
+	}
+
+	// For non-admins, validate the URL resolves to a non-internal IP at connection time
+	// This prevents DNS rebinding attacks where DNS resolves to different IPs between check and use
+	parsedURL, err := url.Parse(notificationURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL: %w", err)
+	}
+
+	host := parsedURL.Hostname()
+	if host != "" && !strings.EqualFold(host, "localhost") {
+		if ip := net.ParseIP(host); ip != nil {
+			if isInternalIP(ip) {
+				return fmt.Errorf("blocked connection to internal IP: %s", ip)
+			}
+		} else if strings.Contains(host, ".") {
+			// Resolve and validate at send time (not check time) to prevent DNS rebinding
+			ips, err := net.LookupIP(host)
+			if err == nil {
+				for _, ip := range ips {
+					if isInternalIP(ip) {
+						return fmt.Errorf("blocked connection to internal IP: %s (DNS rebinding detected)", ip)
+					}
+				}
+			}
+		}
+	}
+
+	return am.SendShoutrrrAlert(notificationURL, "Test Alert", "This is a notification from Beszel.", am.hub.Settings().Meta.AppURL, "View Beszel")
 }
 
 // isInternalURL checks if the given shoutrrr URL points to an internal destination (localhost or private IP)

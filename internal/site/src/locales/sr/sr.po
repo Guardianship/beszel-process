@@ -105,8 +105,8 @@ msgid "Active"
 msgstr "Активно"
 
 #: src/components/active-alerts.tsx
-msgid "Active Alerts"
-msgstr "Активна упозорења"
+#~ msgid "Active Alerts"
+#~ msgstr "Активна упозорења"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Active state"
@@ -162,6 +162,10 @@ msgstr "Историја упозорења"
 msgid "Alerts"
 msgstr "Упозорења"
 
+#: src/components/active-alerts.tsx
+msgid "All Configured Alerts"
+msgstr ""
+
 #: src/components/command-palette.tsx
 #: src/components/containers-table/containers-table.tsx
 #: src/components/navbar.tsx
@@ -178,6 +182,10 @@ msgstr "Сви контејнери"
 #: src/components/systems-table/systems-table.tsx
 msgid "All Systems"
 msgstr "Сви системи"
+
+#: src/components/alerts/alerts-sheet.tsx
+msgid "An alert with the same configuration already exists. A new alert has been created anyway."
+msgstr "Упозорење са истом конфигурацијом већ постоји. Ново упозорење је ипак креирано."
 
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Are you sure you want to delete {name}?"
@@ -267,12 +275,9 @@ msgstr "Постао неактиван"
 msgid "Before"
 msgstr "Пре"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "Ispod {0}{1} u poslednjih {2, plural, one {# minuti} few {# minuta} other {# minuta}}"
+#~ msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "Ispod {0}{1} u poslednjih {2, plural, one {# minuti} few {# minuta} other {# minuta}}"
 
 #: src/components/login/auth-form.tsx
 msgid "Beszel supports OpenID Connect and many OAuth2 authentication providers."
@@ -424,8 +429,8 @@ msgid "Conflicts"
 msgstr "Конфликти"
 
 #: src/components/active-alerts.tsx
-msgid "Connection is down"
-msgstr "Веза је прекинута"
+#~ msgid "Connection is down"
+#~ msgstr "Веза је прекинута"
 
 #: src/components/routes/system.tsx
 msgid "Containers"
@@ -664,6 +669,10 @@ msgstr "Искључен ({downSystemsLength})"
 msgid "Download"
 msgstr "Преузимање"
 
+#: src/components/alerts/alerts-sheet.tsx
+msgid "Duplicate alert detected"
+msgstr "Откривено дуплирано упозорење"
+
 #: src/components/alerts-history-columns.tsx
 msgid "Duration"
 msgstr "Трајање"
@@ -692,6 +701,10 @@ msgstr "Обавештењe е-поштом"
 #: src/lib/i18n.ts
 msgid "Empty"
 msgstr "Празнo"
+
+#: src/components/active-alerts.tsx
+msgid "Enabled"
+msgstr ""
 
 #: src/components/routes/settings/quiet-hours.tsx
 #: src/components/routes/settings/quiet-hours.tsx
@@ -739,12 +752,9 @@ msgstr "Грешка"
 msgid "Example:"
 msgstr "Primer:"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "Премашује {0}{1} у последњих {2, plural, one {# минуту} few {# минута} other {# минута}}"
+#~ msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "Премашује {0}{1} у последњих {2, plural, one {# минуту} few {# минута} other {# минута}}"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Exec main PID"
@@ -1340,6 +1350,7 @@ msgstr "Прецизна употреба у тренутку снимања"
 msgid "Preferred Language"
 msgstr "Жељени језик"
 
+#: src/components/routes/system/port-table-columns.tsx
 #: src/lib/alerts.ts
 msgid "Process"
 msgstr ""
@@ -1786,6 +1797,10 @@ msgstr ""
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Total: {0}"
 msgstr "Укупно: {0}"
+
+#: src/components/active-alerts.tsx
+msgid "Triggered"
+msgstr ""
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Triggered by"

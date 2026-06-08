@@ -34,29 +34,16 @@ export async function dynamicActivate(locale: string) {
 }
 
 export function getLocale() {
-	// let locale = detect(fromUrl("lang"), fromStorage("lang"), fromNavigator(), "en")
-	let locale = detect(fromStorage("lang"), fromNavigator(), "en")
-	// log if dev
+	const locale = detect(fromStorage("lang"), fromNavigator(), "en")
 	if (import.meta.env.DEV) {
 		console.log("detected locale", locale)
 	}
-	// handle zh variants
-	if (locale?.startsWith("zh-")) {
-		// map zh variants to zh-CN
-		const zhVariantMap: Record<string, string> = {
-			"zh-HK": "zh-HK",
-			"zh-TW": "zh",
-			"zh-MO": "zh",
-			"zh-Hant": "zh",
-		}
-		return zhVariantMap[locale] || "zh-CN"
+	// All zh variants map to zh-CN
+	if (locale?.startsWith("zh")) {
+		return "zh-CN"
 	}
-	locale = (locale || "en").split("-")[0]
-	// use en if locale is not in languages
-	if (!languages.some((l) => l[0] === locale)) {
-		locale = "en"
-	}
-	return locale
+	// Only en and zh-CN are supported; everything else falls back to en
+	return "en"
 }
 
 ////////////////////////////////////////////////////////

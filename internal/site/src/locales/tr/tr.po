@@ -105,8 +105,8 @@ msgid "Active"
 msgstr "Aktif"
 
 #: src/components/active-alerts.tsx
-msgid "Active Alerts"
-msgstr "Aktif Uyarılar"
+#~ msgid "Active Alerts"
+#~ msgstr "Aktif Uyarılar"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Active state"
@@ -162,6 +162,10 @@ msgstr "Uyarı Geçmişi"
 msgid "Alerts"
 msgstr "Uyarılar"
 
+#: src/components/active-alerts.tsx
+msgid "All Configured Alerts"
+msgstr ""
+
 #: src/components/command-palette.tsx
 #: src/components/containers-table/containers-table.tsx
 #: src/components/navbar.tsx
@@ -178,6 +182,10 @@ msgstr "Tüm Konteynerler"
 #: src/components/systems-table/systems-table.tsx
 msgid "All Systems"
 msgstr "Tüm Sistemler"
+
+#: src/components/alerts/alerts-sheet.tsx
+msgid "An alert with the same configuration already exists. A new alert has been created anyway."
+msgstr "Aynı yapılandırmaya sahip bir alarm zaten var. Yine de yeni bir alarm oluşturuldu."
 
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Are you sure you want to delete {name}?"
@@ -267,12 +275,9 @@ msgstr "Pasif oldu"
 msgid "Before"
 msgstr "Önce"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "Son {2, plural, one {# dakika} other {# dakika}} içinde {0}{1} altında"
+#~ msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "Son {2, plural, one {# dakika} other {# dakika}} içinde {0}{1} altında"
 
 #: src/components/login/auth-form.tsx
 msgid "Beszel supports OpenID Connect and many OAuth2 authentication providers."
@@ -424,8 +429,8 @@ msgid "Conflicts"
 msgstr "Çakışmalar"
 
 #: src/components/active-alerts.tsx
-msgid "Connection is down"
-msgstr "Bağlantı kesildi"
+#~ msgid "Connection is down"
+#~ msgstr "Bağlantı kesildi"
 
 #: src/components/routes/system.tsx
 msgid "Containers"
@@ -664,6 +669,10 @@ msgstr "Kapalı ({downSystemsLength})"
 msgid "Download"
 msgstr "İndir"
 
+#: src/components/alerts/alerts-sheet.tsx
+msgid "Duplicate alert detected"
+msgstr "Yinelenen alarm algılandı"
+
 #: src/components/alerts-history-columns.tsx
 msgid "Duration"
 msgstr "Süre"
@@ -692,6 +701,10 @@ msgstr "E-posta bildirimleri"
 #: src/lib/i18n.ts
 msgid "Empty"
 msgstr "Boş"
+
+#: src/components/active-alerts.tsx
+msgid "Enabled"
+msgstr ""
 
 #: src/components/routes/settings/quiet-hours.tsx
 #: src/components/routes/settings/quiet-hours.tsx
@@ -739,12 +752,9 @@ msgstr "Hata"
 msgid "Example:"
 msgstr "Örnek:"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "Son {2, plural, one {# dakika} other {# dakika}} içinde {0}{1} aşıyor"
+#~ msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "Son {2, plural, one {# dakika} other {# dakika}} içinde {0}{1} aşıyor"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Exec main PID"
@@ -1340,6 +1350,7 @@ msgstr "Kayıtlı zamanda kesin kullanım"
 msgid "Preferred Language"
 msgstr "Tercih Edilen Dil"
 
+#: src/components/routes/system/port-table-columns.tsx
 #: src/lib/alerts.ts
 msgid "Process"
 msgstr ""
@@ -1786,6 +1797,10 @@ msgstr ""
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Total: {0}"
 msgstr "Toplam: {0}"
+
+#: src/components/active-alerts.tsx
+msgid "Triggered"
+msgstr ""
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Triggered by"

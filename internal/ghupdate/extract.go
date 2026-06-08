@@ -35,6 +35,9 @@ func extractTarGz(srcPath, destDir string) error {
 	}
 	defer gz.Close()
 
+	// normalize dest path to check later for path traversal
+	destDir = filepath.Clean(destDir) + string(os.PathSeparator)
+
 	tr := tar.NewReader(gz)
 
 	for {
@@ -46,18 +49,24 @@ func extractTarGz(srcPath, destDir string) error {
 			return err
 		}
 
+		// Validate path to prevent directory traversal (Zip Slip attack)
+		destPath := filepath.Join(destDir, header.Name)
+		if !strings.HasPrefix(destPath, destDir) {
+			return fmt.Errorf("invalid file path: %s", header.Name)
+		}
+
 		if header.Typeflag == tar.TypeDir {
-			if err := os.MkdirAll(filepath.Join(destDir, header.Name), 0755); err != nil {
+			if err := os.MkdirAll(destPath, 0755); err != nil {
 				return err
 			}
 			continue
 		}
 
-		if err := os.MkdirAll(filepath.Dir(filepath.Join(destDir, header.Name)), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
 			return err
 		}
 
-		outFile, err := os.Create(filepath.Join(destDir, header.Name))
+		outFile, err := os.Create(destPath)
 		if err != nil {
 			return err
 		}

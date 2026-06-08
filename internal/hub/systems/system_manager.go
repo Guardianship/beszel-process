@@ -3,6 +3,9 @@ package systems
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+	"net"
+	"os"
 	"time"
 
 	"github.com/henrygd/beszel/internal/hub/ws"
@@ -15,6 +18,7 @@ import (
 	"github.com/henrygd/beszel"
 
 	"github.com/blang/semver"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/store"
 	"golang.org/x/crypto/ssh"
@@ -344,6 +348,35 @@ func (sm *SystemManager) createSSHClientConfig() error {
 		return err
 	}
 
+	// SSH host key verification: TOFU by default, disabled only with INSECURE_SSH=true
+	var hostKeyCallback ssh.HostKeyCallback
+	insecureSSH := os.Getenv("INSECURE_SSH") == "true"
+	if insecureSSH {
+		slog.Warn("SSH host key verification disabled (INSECURE_SSH=true)")
+		hostKeyCallback = ssh.InsecureIgnoreHostKey()
+	} else {
+		// TOFU: Trust-On-First-Use - save fingerprint on first connect, verify on subsequent
+		hostKeyCallback = func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+			currentFingerprint := ssh.FingerprintSHA256(key)
+
+			// Try to get stored fingerprint from database
+			savedFingerprint, err := sm.getHostKeyFingerprint(hostname)
+			if err != nil || savedFingerprint == "" {
+				// First connection: save the fingerprint
+				slog.Info("Saving SSH host key fingerprint (first connection)",
+					"host", hostname, "fingerprint", currentFingerprint)
+				return sm.saveHostKeyFingerprint(hostname, currentFingerprint)
+			}
+
+			// Verify fingerprint matches
+			if savedFingerprint != currentFingerprint {
+				return fmt.Errorf("SSH host key mismatch for %s: expected %s, got %s (possible MITM attack)",
+					hostname, savedFingerprint, currentFingerprint)
+			}
+			return nil
+		}
+	}
+
 	sm.sshConfig = &ssh.ClientConfig{
 		User: "u",
 		Auth: []ssh.AuthMethod{
@@ -354,10 +387,51 @@ func (sm *SystemManager) createSSHClientConfig() error {
 			KeyExchanges: common.DefaultKeyExchanges,
 			MACs:         common.DefaultMACs,
 		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: hostKeyCallback,
 		ClientVersion:   fmt.Sprintf("SSH-2.0-%s_%s", beszel.AppName, beszel.Version),
 		Timeout:         sessionTimeout,
 	}
+	return nil
+}
+
+// getHostKeyFingerprint retrieves the stored SSH host key fingerprint for a given host
+func (sm *SystemManager) getHostKeyFingerprint(hostname string) (string, error) {
+	var result struct {
+		Fingerprint string `db:"host_key_fingerprint"`
+	}
+	err := sm.hub.DB().NewQuery(
+		"SELECT host_key_fingerprint FROM systems WHERE host={:host} AND host_key_fingerprint != '' LIMIT 1").
+		Bind(dbx.Params{"host": hostname}).
+		One(&result)
+	if err != nil {
+		return "", nil // Return empty if not found or error
+	}
+	return result.Fingerprint, nil
+}
+
+// saveHostKeyFingerprint stores the SSH host key fingerprint for a given host
+func (sm *SystemManager) saveHostKeyFingerprint(hostname, fingerprint string) error {
+	// Try to update first
+	_, err := sm.hub.DB().NewQuery(
+		"UPDATE systems SET host_key_fingerprint={:fingerprint} WHERE host={:host}").
+		Bind(dbx.Params{"fingerprint": fingerprint, "host": hostname}).
+		Execute()
+	if err != nil {
+		// Column might not exist yet, try to add it
+		if _, alterErr := sm.hub.DB().NewQuery(
+			"ALTER TABLE systems ADD COLUMN host_key_fingerprint TEXT DEFAULT ''").Execute(); alterErr == nil {
+			// Column added, retry the update
+			_, err = sm.hub.DB().NewQuery(
+				"UPDATE systems SET host_key_fingerprint={:fingerprint} WHERE host={:host}").
+				Bind(dbx.Params{"fingerprint": fingerprint, "host": hostname}).
+				Execute()
+		}
+	}
+	if err != nil {
+		slog.Error("Failed to save SSH host key fingerprint", "host", hostname, "err", err)
+		return err
+	}
+	slog.Info("Saved SSH host key fingerprint", "host", hostname, "fingerprint", fingerprint)
 	return nil
 }
 

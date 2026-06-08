@@ -161,7 +161,7 @@ func SyncSystems(e *core.ServeEvent) error {
 }
 
 // Generates content for the config.yml file as a YAML string
-func generateYAML(h core.App) (string, error) {
+func generateYAML(h core.App, showTokens bool) (string, error) {
 	// Fetch all systems from the database
 	systems, err := h.FindRecordsByFilter("systems", "id != ''", "name", -1, 0)
 	if err != nil {
@@ -211,12 +211,18 @@ func generateYAML(h core.App) (string, error) {
 			}
 		}
 
+		// Mask token unless showTokens is true
+		token := systemTokenMap[system.Id]
+		if !showTokens && token != "" {
+			token = maskToken(token)
+		}
+
 		sysConfig := systemConfig{
 			Name:  system.GetString("name"),
 			Host:  system.GetString("host"),
 			Port:  cast.ToUint16(system.Get("port")),
 			Users: userEmails,
-			Token: systemTokenMap[system.Id],
+			Token: token,
 		}
 		config.Systems = append(config.Systems, sysConfig)
 	}
@@ -277,9 +283,19 @@ func createFingerprintRecord(app core.App, systemID, token string) error {
 	return app.Save(newFingerprint)
 }
 
+// maskToken masks a token string, showing only the first 8 and last 4 characters
+func maskToken(token string) string {
+	if len(token) <= 12 {
+		return "****"
+	}
+	return token[:8] + "****" + token[len(token)-4:]
+}
+
 // Returns the current config.yml file as a JSON object
 func GetYamlConfig(e *core.RequestEvent) error {
-	configContent, err := generateYAML(e.App)
+	// Check if user wants to see full tokens (admin only)
+	showTokens := e.Request.URL.Query().Has("show-tokens")
+	configContent, err := generateYAML(e.App, showTokens)
 	if err != nil {
 		return err
 	}

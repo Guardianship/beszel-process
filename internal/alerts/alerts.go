@@ -254,7 +254,7 @@ func (am *AlertManager) SendAlert(data AlertMessageData) error {
 	message := mailer.Message{
 		To:      addresses,
 		Subject: data.Title,
-		Text:    data.Message + fmt.Sprintf("\n\n%s", data.Link),
+		Text:    data.Message + "\n\n查看详情需登录运维管理平台。",
 		From: mail.Address{
 			Address: am.hub.Settings().Meta.SenderAddress,
 			Name:    am.hub.Settings().Meta.SenderName,

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/blang/semver"
@@ -84,13 +85,97 @@ func (h *Hub) registerMiddlewares(se *core.ServeEvent) {
 	}
 }
 
+// RateLimiter provides simple IP-based rate limiting
+type RateLimiter struct {
+	mu       sync.Mutex
+	visitors map[string]*visitor
+	rate     int
+	window   time.Duration
+}
+
+type visitor struct {
+	count    int
+	lastSeen time.Time
+}
+
+// NewRateLimiter creates a new rate limiter with the specified rate (requests per window)
+func NewRateLimiter(rate int, window time.Duration) *RateLimiter {
+	rl := &RateLimiter{
+		visitors: make(map[string]*visitor),
+		rate:     rate,
+		window:   window,
+	}
+	// Cleanup expired entries periodically
+	go func() {
+		for {
+			time.Sleep(window)
+			rl.cleanup()
+		}
+	}()
+	return rl
+}
+
+// Allow checks if the request from the given IP should be allowed
+func (rl *RateLimiter) Allow(ip string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	v, exists := rl.visitors[ip]
+	if !exists || time.Since(v.lastSeen) > rl.window {
+		rl.visitors[ip] = &visitor{count: 1, lastSeen: time.Now()}
+		return true
+	}
+
+	if v.count >= rl.rate {
+		return false
+	}
+
+	v.count++
+	v.lastSeen = time.Now()
+	return true
+}
+
+// cleanup removes expired visitor entries
+func (rl *RateLimiter) cleanup() {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+	for ip, v := range rl.visitors {
+		if time.Since(v.lastSeen) > rl.window {
+			delete(rl.visitors, ip)
+		}
+	}
+}
+
+// RateLimitMiddleware returns a middleware that limits requests per IP
+func RateLimitMiddleware(limiter *RateLimiter) func(e *core.RequestEvent) error {
+	return func(e *core.RequestEvent) error {
+		ip := e.Request.RemoteAddr
+		// Extract IP from host:port format
+		if host, _, found := strings.Cut(ip, ":"); found {
+			ip = host
+		}
+		if !limiter.Allow(ip) {
+			return e.JSON(http.StatusTooManyRequests, map[string]string{
+				"error": "Rate limit exceeded. Please try again later.",
+			})
+		}
+		return e.Next()
+	}
+}
+
 // registerApiRoutes registers custom API routes
 func (h *Hub) registerApiRoutes(se *core.ServeEvent) error {
+	// Rate limiters for different endpoint categories
+	authLimiter := NewRateLimiter(10, time.Minute)      // 10 requests per minute for auth endpoints
+	apiLimiter := NewRateLimiter(100, time.Minute)       // 100 requests per minute for general API
+
 	// auth protected routes
 	apiAuth := se.Router.Group("/api/beszel")
 	apiAuth.Bind(apis.RequireAuth())
+	apiAuth.BindFunc(RateLimitMiddleware(apiLimiter))
 	// auth optional routes
 	apiNoAuth := se.Router.Group("/api/beszel")
+	apiNoAuth.BindFunc(RateLimitMiddleware(authLimiter))
 
 	// create first user endpoint only needed if no users exist
 	if totalUsers, _ := se.App.CountRecords("users"); totalUsers == 0 {

@@ -105,8 +105,8 @@ msgid "Active"
 msgstr "Aktif"
 
 #: src/components/active-alerts.tsx
-msgid "Active Alerts"
-msgstr "Peringatan Aktif"
+#~ msgid "Active Alerts"
+#~ msgstr "Peringatan Aktif"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Active state"
@@ -162,6 +162,10 @@ msgstr "Riwayat Peringatan"
 msgid "Alerts"
 msgstr "Peringatan"
 
+#: src/components/active-alerts.tsx
+msgid "All Configured Alerts"
+msgstr ""
+
 #: src/components/command-palette.tsx
 #: src/components/containers-table/containers-table.tsx
 #: src/components/navbar.tsx
@@ -178,6 +182,10 @@ msgstr "Semua Container"
 #: src/components/systems-table/systems-table.tsx
 msgid "All Systems"
 msgstr "Semua Sistem"
+
+#: src/components/alerts/alerts-sheet.tsx
+msgid "An alert with the same configuration already exists. A new alert has been created anyway."
+msgstr "Peringatan dengan konfigurasi yang sama sudah ada. Peringatan baru tetap telah dibuat."
 
 #: src/components/systems-table/systems-table-columns.tsx
 msgid "Are you sure you want to delete {name}?"
@@ -267,12 +275,9 @@ msgstr "Menjadi inaktif"
 msgid "Before"
 msgstr "Sebelum"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "Di bawah {0}{1} dalam {2, plural, one {# menit} other {# menit}} terakhir"
+#~ msgid "Below {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "Di bawah {0}{1} dalam {2, plural, one {# menit} other {# menit}} terakhir"
 
 #: src/components/login/auth-form.tsx
 msgid "Beszel supports OpenID Connect and many OAuth2 authentication providers."
@@ -424,8 +429,8 @@ msgid "Conflicts"
 msgstr "Konflik"
 
 #: src/components/active-alerts.tsx
-msgid "Connection is down"
-msgstr "Koneksi terputus"
+#~ msgid "Connection is down"
+#~ msgstr "Koneksi terputus"
 
 #: src/components/routes/system.tsx
 msgid "Containers"
@@ -664,6 +669,10 @@ msgstr "Mati ({downSystemsLength})"
 msgid "Download"
 msgstr "Unduh"
 
+#: src/components/alerts/alerts-sheet.tsx
+msgid "Duplicate alert detected"
+msgstr "Peringatan duplikat terdeteksi"
+
 #: src/components/alerts-history-columns.tsx
 msgid "Duration"
 msgstr "Durasi"
@@ -692,6 +701,10 @@ msgstr "Notifikasi email"
 #: src/lib/i18n.ts
 msgid "Empty"
 msgstr "Kosong"
+
+#: src/components/active-alerts.tsx
+msgid "Enabled"
+msgstr ""
 
 #: src/components/routes/settings/quiet-hours.tsx
 #: src/components/routes/settings/quiet-hours.tsx
@@ -739,12 +752,9 @@ msgstr ""
 msgid "Example:"
 msgstr "Contoh:"
 
-#. placeholder {0}: alert.value
-#. placeholder {1}: info.unit
-#. placeholder {2}: alert.min
 #: src/components/active-alerts.tsx
-msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
-msgstr "Melebihi {0}{1} dalam {2, plural, one {# menit} other {# menit}} terakhir"
+#~ msgid "Exceeds {0}{1} in last {2, plural, one {# minute} other {# minutes}}"
+#~ msgstr "Melebihi {0}{1} dalam {2, plural, one {# menit} other {# menit}} terakhir"
 
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Exec main PID"
@@ -1340,6 +1350,7 @@ msgstr "Utilisasi tepat pada waktu yang direkam"
 msgid "Preferred Language"
 msgstr "Pilihan Bahasa"
 
+#: src/components/routes/system/port-table-columns.tsx
 #: src/lib/alerts.ts
 msgid "Process"
 msgstr ""
@@ -1785,6 +1796,10 @@ msgstr ""
 #: src/components/routes/system/process-table.tsx
 #: src/components/systemd-table/systemd-table.tsx
 msgid "Total: {0}"
+msgstr ""
+
+#: src/components/active-alerts.tsx
+msgid "Triggered"
 msgstr ""
 
 #: src/components/systemd-table/systemd-table.tsx
